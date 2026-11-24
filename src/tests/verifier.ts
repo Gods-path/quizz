@@ -118,7 +118,11 @@ export function expect(actual: unknown): Verification {
         typeof actual === "function",
         "expect(...).toThrow() attend une fonction",
       );
-      assert.throws(actual as () => unknown, expected ?? undefined);
+      if (expected === undefined) {
+        assert.throws(actual as () => unknown);
+      } else {
+        assert.throws(actual as () => unknown, expected);
+      }
     },
     not: {
       toBe(expected) {
