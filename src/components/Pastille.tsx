@@ -1,14 +1,14 @@
 "use client";
 
 const COULEURS = [
-  "#e2724f",
-  "#2f6ddf",
-  "#2fa84f",
-  "#efb008",
-  "#c653a8",
-  "#2fa8a0",
-  "#e03e3e",
-  "#8a6ae0",
+  "#ff2e97",
+  "#25e5ff",
+  "#00e35f",
+  "#ffc400",
+  "#b14bff",
+  "#ff6a3d",
+  "#ff2d55",
+  "#4d7cff",
 ];
 
 /** Une couleur stable par nom : le même apprenant garde sa couleur. */
@@ -47,16 +47,21 @@ export function Pastille({
         className="titre"
         style={{
           alignItems: "center",
-          background: couleurDe(nom),
+          // Pas de color-mix() dans un style en ligne : impossible d'y
+          // mettre un repli pour les vieux navigateurs. Un voile blanc et
+          // un voile noir par-dessus la couleur donnent le même relief.
+          background: `radial-gradient(circle at 30% 25%, rgba(255,255,255,0.45), rgba(0,0,0,0.35)), ${couleurDe(nom)}`,
+          border: "2px solid rgba(255, 255, 255, 0.6)",
           borderRadius: "50%",
           color: "#fff",
           display: "flex",
-          fontSize: taille * 0.36,
+          fontSize: taille * 0.34,
           height: taille,
           justifyContent: "center",
           margin: "0 auto",
           width: taille,
-          boxShadow: "0 4px 12px rgb(0 0 0 / 0.3)",
+          boxShadow: `0 0 18px ${couleurDe(nom)}, inset 0 1px 0 rgb(255 255 255 / 0.4)`,
+          textShadow: "0 1px 4px rgb(0 0 0 / 0.6)",
         }}
         aria-hidden
       >

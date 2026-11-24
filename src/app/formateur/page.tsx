@@ -197,6 +197,13 @@ function Bibliotheque() {
           >
             Historique
           </Link>
+          <Link
+            href="/formateur/son"
+            className="bouton-secondaire"
+            style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+          >
+            🔊 Tester le son
+          </Link>
           <button
             type="button"
             className="bouton-secondaire"

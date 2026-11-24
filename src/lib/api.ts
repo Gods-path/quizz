@@ -7,6 +7,11 @@ import { NextResponse } from "next/server";
 import { isAdmin } from "./auth.ts";
 import { GameError } from "./game-server.ts";
 
+// Les helpers purs vivent dans entrees.ts pour pouvoir être testés sans
+// Next ni Supabase. On les réexporte : les routes continuent de les
+// importer depuis « @/lib/api ».
+export { asInt, asString, cleanPlayerName } from "./entrees.ts";
+
 export function ok<T>(data: T, status = 200) {
   return NextResponse.json(data as Record<string, unknown>, { status });
 }
@@ -65,25 +70,4 @@ export async function guard(
     console.error("[quiz] erreur de route :", error);
     return fail(messageOf(error), 500);
   }
-}
-
-export function asString(value: unknown, max = 500): string {
-  if (typeof value !== "string") return "";
-  return value.slice(0, max).trim();
-}
-
-export function asInt(value: unknown): number | null {
-  const n = typeof value === "number" ? value : Number(asString(value, 20));
-  return Number.isFinite(n) ? Math.round(n) : null;
-}
-
-/** Nettoie un nom de joueur : 24 caractères maximum, pas de HTML possible. */
-export function cleanPlayerName(value: unknown): string {
-  if (typeof value !== "string") return "";
-  return value
-    // eslint-disable-next-line no-control-regex
-    .replace(/[\u0000-\u001f\u007f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 24);
 }

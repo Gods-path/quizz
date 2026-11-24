@@ -10,7 +10,7 @@ export interface Place {
 
 const HAUTEURS = [170, 120, 90];
 const MEDAILLES = ["🥇", "🥈", "🥉"];
-const COULEURS = ["#efb008", "#c9ccd4", "#c98c4a"];
+const COULEURS = ["#ffc400", "#9ad8ff", "#ff8a3d"];
 
 /** Podium animé des trois premiers : 2e à gauche, 1er au centre. */
 export function Podium({ places }: { places: Place[] }) {
@@ -50,8 +50,13 @@ export function Podium({ places }: { places: Place[] }) {
               className="anim-monte"
               style={{
                 alignItems: "flex-start",
-                background: `linear-gradient(180deg, ${COULEURS[index]} 0%, color-mix(in srgb, ${COULEURS[index]} 55%, #3b1f44) 100%)`,
-                borderRadius: "0.8rem 0.8rem 0 0",
+                // Hex sur 8 chiffres plutôt que color-mix() : même rendu,
+                // compris par tous les navigateurs.
+                background: `linear-gradient(180deg, ${COULEURS[index]} 0%, ${COULEURS[index]}33 100%)`,
+                border: `2px solid ${COULEURS[index]}`,
+                borderBottom: "none",
+                borderRadius: "0.4rem 0.4rem 0 0",
+                boxShadow: `0 0 28px ${COULEURS[index]}99`,
                 display: "flex",
                 fontSize: "clamp(1.6rem, 3vw, 2.6rem)",
                 height: HAUTEURS[index],

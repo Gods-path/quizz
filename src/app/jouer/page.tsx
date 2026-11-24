@@ -99,9 +99,11 @@ export default function PageJeu() {
       return;
     }
     setSession(trouvee);
-    // Le son a déjà été débloqué sur la page d'entrée ; au cas où la page
-    // aurait été rechargée, le premier toucher le refera.
+    // Le son a déjà été débloqué sur la page d'entrée. Mais si la page a été
+    // rechargée (ou ouverte directement ici), le navigateur refuse encore le
+    // son : on le débloquera au tout premier toucher de l'écran.
     audio().debloquer();
+    audio().armerPremierGeste();
   }, [router]);
 
   // ------------------------------------------------------- lecture de l'état
@@ -278,12 +280,19 @@ export default function PageJeu() {
 
   // ---------- Réaction plein écran (environ 3 secondes) ----------
   if (reaction) {
-    const fond =
+    // Fonds néon : une lueur colorée au centre sur du presque noir,
+    // dans le même esprit arcade que le reste de l'application.
+    const lueur =
       reaction.type === "reussite"
-        ? "linear-gradient(160deg, #1b5e34, #0f3d22)"
+        ? "0, 227, 95"
         : reaction.type === "tropLent"
-          ? "linear-gradient(160deg, #4a3a16, #2b2410)"
-          : "linear-gradient(160deg, #6b1f1f, #3d1212)";
+          ? "255, 196, 0"
+          : "255, 45, 85";
+
+    const fond =
+      `radial-gradient(ellipse 85% 60% at 50% 38%, rgba(${lueur}, 0.38), transparent 68%),` +
+      ` radial-gradient(ellipse 70% 50% at 50% 110%, rgba(${lueur}, 0.18), transparent 70%),` +
+      " #05030e";
 
     return (
       <main
@@ -307,18 +316,39 @@ export default function PageJeu() {
           {EMOJIS[reaction.type]}
         </div>
         <h1
-          className="anim-apparait"
-          style={{ fontSize: "clamp(1.8rem, 9vw, 3rem)", margin: "1rem 0 0.4rem" }}
+          className="anim-apparait texte-normal"
+          style={{
+            fontSize: "clamp(1.8rem, 9vw, 3rem)",
+            fontWeight: 800,
+            margin: "1rem 0 0.6rem",
+            textShadow: `0 0 18px rgba(${lueur}, 0.9), 0 0 48px rgba(${lueur}, 0.5)`,
+          }}
         >
           {reaction.phrase}
         </h1>
         {reaction.points > 0 && (
-          <p className="titre" style={{ fontSize: "1.6rem", margin: "0.3rem 0" }}>
+          <p
+            className="titre"
+            style={{
+              color: `rgb(${lueur})`,
+              fontSize: "1.7rem",
+              margin: "0.3rem 0",
+              textShadow: `0 0 16px rgba(${lueur}, 0.85)`,
+            }}
+          >
             +{reaction.points} points
           </p>
         )}
         {reaction.serie && (
-          <p className="titre" style={{ fontSize: "1.3rem", margin: 0 }}>
+          <p
+            className="titre"
+            style={{
+              color: "var(--color-cyan)",
+              fontSize: "1.3rem",
+              margin: 0,
+              textShadow: "0 0 16px rgba(37, 229, 255, 0.85)",
+            }}
+          >
             {reaction.serie}
           </p>
         )}
@@ -484,7 +514,10 @@ export default function PageJeu() {
           <p className="etiquette">
             Question {etat.index + 1} / {etat.questionCount}
           </p>
-          <h1 style={{ fontSize: "1.3rem", margin: "0.8rem 0" }}>
+          <h1
+            className="question-texte"
+            style={{ fontSize: "1.3rem", margin: "0.8rem 0" }}
+          >
             {etat.question?.text}
           </h1>
 
@@ -580,7 +613,10 @@ export default function PageJeu() {
         </p>
       )}
 
-      <h1 style={{ fontSize: "1.35rem", lineHeight: 1.25, margin: "0.4rem 0 1rem" }}>
+      <h1
+        className="question-texte"
+        style={{ fontSize: "1.35rem", lineHeight: 1.25, margin: "0.4rem 0 1rem" }}
+      >
         {question?.text}
       </h1>
 

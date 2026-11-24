@@ -156,6 +156,8 @@ titre, 45 minutes, choisir le fichier.
 
 1. Sur l'ordinateur relié au vidéoprojecteur, ouvrez `/formateur` et
    connectez-vous.
+   *Avant le premier cours, passez par **« 🔊 Tester le son »** pour vérifier
+   le volume de la salle.*
 2. Réglez si besoin le **seuil de réussite** (72 % par défaut) et le
    **mode moqueur**.
 3. Choisissez un quiz → **Créer une partie**.
@@ -396,10 +398,22 @@ partie active Supabase Realtime. Par sécurité, l'écran se rafraîchit aussi t
 seul toutes les 3 secondes, donc un retard de quelques secondes n'est pas grave.
 
 **Pas de son ou pas de voix sur un téléphone**
-Le son ne démarre qu'après le premier toucher de l'écran (« Entrer dans le
-quiz »). Vérifiez aussi que le téléphone n'est pas en mode silencieux. Si le
-téléphone n'a aucune voix française installée, les phrases s'affichent et les
-bruitages jouent, mais rien n'est prononcé : c'est normal.
+Ouvrez **`/formateur` → « 🔊 Tester le son »** : cette page joue chaque musique
+et chaque bruitage sur commande, et vous dit si une voix française est
+installée sur l'appareil. Faites-le depuis le téléphone, c'est là que ça
+compte.
+
+Les causes habituelles, dans l'ordre :
+1. le son ne démarre qu'**après le premier toucher de l'écran** (c'est une
+   règle des navigateurs, pas un réglage de l'application) ;
+2. le téléphone est en mode silencieux, ou le volume média est à zéro ;
+3. aucune **voix française** n'est installée : les phrases s'affichent et les
+   bruitages jouent, mais rien n'est prononcé. C'est prévu et sans gravité.
+   Sur Android : *Paramètres → Système → Langues et saisie → Sortie de
+   synthèse vocale → installer les données vocales françaises*.
+
+La musique est volontairement **trois fois moins forte** que les bruitages
+(mesuré : −13 dB contre −3 dB), pour animer sans couvrir votre voix.
 
 **Le quiz n'avance plus**
 L'écran formateur a été fermé ou l'ordinateur s'est mis en veille. Rouvrez la
@@ -441,12 +455,14 @@ C'est le point le plus important si vous notez vos apprenants.
 src/app/                 les pages et les routes API
   page.tsx               écran d'entrée des apprenants
   jouer/                 écran de jeu des apprenants
-  formateur/             bibliothèque, import, partie, historique
+  formateur/             bibliothèque, import, partie, historique, son
   api/                   toutes les routes serveur
+  globals.css            le thème « arcade néon »
 src/lib/                 le cœur du programme
   csv.ts                 lecture et validation du CSV
   durations.ts           calcul des durées
   scoring.ts             points et bonus de série
+  entrees.ts             nettoyage de ce qui vient du navigateur
   game-server.ts         déroulement de la partie (serveur)
   audio/                 musique, bruitages et voix
 src/components/          chrono, boutons, podium, confettis…

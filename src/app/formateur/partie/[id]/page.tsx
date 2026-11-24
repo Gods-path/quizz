@@ -108,6 +108,9 @@ function EcranPartie({ gameId }: { gameId: string }) {
 
   useEffect(() => {
     void rafraichir();
+    // Si cet écran est rouvert depuis l'historique, aucun clic n'a eu lieu :
+    // le son se débloquera au premier toucher.
+    audio().armerPremierGeste();
   }, [rafraichir]);
 
   useRealtimeGame(gameId, rafraichir, 3000);
@@ -328,7 +331,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
               >
                 Code du quiz
               </div>
-              <div className="code-partie" style={{ color: "var(--color-terracotta-clair)" }}>
+              <div className="code-partie" style={{ color: "var(--color-accent-clair)" }}>
                 {partie.code}
               </div>
             </div>
@@ -446,7 +449,8 @@ function EcranPartie({ gameId }: { gameId: string }) {
               href={`/api/game/${gameId}/results`}
               style={{ textDecoration: "none" }}
             >
-              ⬇ Exporter les résultats en CSV
+              <span style={{ fontFamily: "var(--font-texte)" }}>⬇</span>{" "}
+              Exporter les résultats en CSV
             </a>
             <Link href="/formateur" className="bouton-secondaire" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
               Retour à la bibliothèque
@@ -547,22 +551,8 @@ function EcranPartie({ gameId }: { gameId: string }) {
                 </span>
               )}
             </div>
-            <div
-              style={{
-                background: "var(--color-prune-clair)",
-                borderRadius: 999,
-                height: 12,
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  background: "var(--color-terracotta)",
-                  height: "100%",
-                  transition: "width 0.4s ease",
-                  width: `${progression}%`,
-                }}
-              />
+            <div className="jauge">
+              <div style={{ width: `${progression}%` }} />
             </div>
           </div>
 
@@ -672,7 +662,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
             }}
           >
             <section className="carte">
-              <h2 style={{ fontSize: "1.2rem", marginTop: 0 }}>
+              <h2 className="texte-normal" style={{ fontSize: "1.2rem", marginTop: 0 }}>
                 ✅ {etat.bonnesReponsesCount ?? 0} bonne
                 {(etat.bonnesReponsesCount ?? 0) > 1 ? "s" : ""} réponse
                 {(etat.bonnesReponsesCount ?? 0) > 1 ? "s" : ""}

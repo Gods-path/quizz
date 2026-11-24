@@ -398,7 +398,7 @@ function Importateur() {
                         void changerDuree(question.position, Number(event.target.value) || 15)
                       }
                       style={{
-                        borderColor: question.locked ? "var(--color-terracotta)" : undefined,
+                        borderColor: question.locked ? "var(--color-accent)" : undefined,
                         textAlign: "center",
                         width: 110,
                       }}
@@ -410,7 +410,7 @@ function Importateur() {
                         style={{
                           background: "none",
                           border: "none",
-                          color: "var(--color-terracotta-clair)",
+                          color: "var(--color-accent-clair)",
                           cursor: "pointer",
                           fontSize: "0.78rem",
                           marginTop: "0.3rem",

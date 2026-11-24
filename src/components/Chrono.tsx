@@ -20,7 +20,11 @@ export function Chrono({
   const rayon = taille / 2 - 8;
   const circonference = 2 * Math.PI * rayon;
   const couleur =
-    secondes <= 5 ? "var(--color-reponse-a)" : secondes <= 10 ? "#efb008" : "var(--color-succes)";
+    secondes <= 5
+      ? "var(--color-reponse-a)"
+      : secondes <= 10
+        ? "var(--color-reponse-c)"
+        : "var(--color-cyan)";
 
   return (
     <div
@@ -49,7 +53,10 @@ export function Chrono({
           strokeLinecap="round"
           strokeDasharray={circonference}
           strokeDashoffset={circonference * (1 - fraction)}
-          style={{ transition: "stroke-dashoffset 0.25s linear, stroke 0.3s ease" }}
+          style={{
+            filter: `drop-shadow(0 0 7px ${couleur})`,
+            transition: "stroke-dashoffset 0.25s linear, stroke 0.3s ease",
+          }}
         />
       </svg>
       <div
@@ -62,6 +69,7 @@ export function Chrono({
           justifyContent: "center",
           fontSize: taille * 0.34,
           color: couleur,
+          textShadow: `0 0 12px ${couleur}`,
         }}
       >
         {secondes}

@@ -54,7 +54,15 @@ export function BoutonReponse({
       <span style={{ flex: 1 }}>{text}</span>
       {estime === "bonne" && <span aria-label="bonne réponse">✓</span>}
       {marque && (
-        <span className="titre" style={{ opacity: 0.9 }}>
+        // Police de texte : en Orbitron, le zéro est barré et se lit
+        // comme un symbole plutôt que comme un chiffre.
+        <span
+          style={{
+            fontFamily: "var(--font-texte)",
+            fontWeight: 800,
+            opacity: 0.95,
+          }}
+        >
           {marque}
         </span>
       )}

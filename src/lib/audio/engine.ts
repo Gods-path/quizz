@@ -10,9 +10,19 @@
 export type Ambiance = "silence" | "attente" | "question" | "revelation" | "finale";
 export type TonVoix = "enjoue" | "moqueur" | "neutre";
 
-const VOLUME_MUSIQUE = 0.18;
-const VOLUME_MUSIQUE_BAISSEE = 0.05;
-const VOLUME_BRUITAGES = 0.5;
+// Ces valeurs sont les gains des BUS. Les notes, elles, sont jouees proche
+// de 1 : sinon l'attenuation s'applique deux fois et le son devient
+// inaudible sur un haut-parleur de telephone (c'etait le cas : 0,18 x 0,25
+// = 0,045, soit -27 dB).
+//
+// Valeurs CALEES A LA MESURE (amplitude crete relevee en sortie, via un
+// analyseur branche sur la destination) :
+//   musique    ~0,20  -> les 15-20 % demandes, presente sans gener
+//   bruitages  ~0,65  -> environ 10 dB au-dessus : ils passent par-dessus
+// Ne les changez pas « au jugé » : remesurez avec /formateur/son.
+const VOLUME_MUSIQUE = 0.09;
+const VOLUME_MUSIQUE_BAISSEE = 0.03;
+const VOLUME_BRUITAGES = 0.9;
 
 /** Un pas de séquenceur toutes les 125 ms : assez fin pour un tic-tac. */
 const PAS_MS = 125;
@@ -79,6 +89,8 @@ export class MoteurAudio {
   private secondesRestantes = 999;
   private voix: SpeechSynthesisVoice | null = null;
   private voixCherchee = false;
+  private gesteArme = false;
+  private voixReveillee = false;
 
   get actif(): boolean {
     return this.ctx !== null;
@@ -102,7 +114,18 @@ export class MoteurAudio {
       this.ctx = new Constructeur();
       this.master = this.ctx.createGain();
       this.master.gain.value = 1;
-      this.master.connect(this.ctx.destination);
+
+      // Un compresseur en sortie : plusieurs notes peuvent se superposer
+      // (musique + bruitage + tic-tac) et saturer. Il arrondit les pointes
+      // au lieu de les laisser craquer dans le haut-parleur.
+      const compresseur = this.ctx.createDynamicsCompressor();
+      compresseur.threshold.value = -14;
+      compresseur.knee.value = 12;
+      compresseur.ratio.value = 6;
+      compresseur.attack.value = 0.003;
+      compresseur.release.value = 0.2;
+
+      this.master.connect(compresseur).connect(this.ctx.destination);
 
       this.musique = this.ctx.createGain();
       this.musique.gain.value = VOLUME_MUSIQUE;
@@ -117,7 +140,10 @@ export class MoteurAudio {
     this.chercherVoix();
 
     // Réveille aussi la synthèse vocale, bloquée elle aussi avant un geste.
-    if ("speechSynthesis" in window) {
+    // UNE SEULE FOIS : debloquer() peut être rappelé à chaque toucher, et
+    // une file d'énoncés vides retarderait la vraie phrase.
+    if (!this.voixReveillee && "speechSynthesis" in window) {
+      this.voixReveillee = true;
       try {
         const vide = new SpeechSynthesisUtterance(" ");
         vide.volume = 0;
@@ -130,6 +156,57 @@ export class MoteurAudio {
     if (!this.boucle) {
       this.boucle = setInterval(() => this.unPas(), PAS_MS);
     }
+  }
+
+  /**
+   * Filet de sécurité : si la page est rechargée (ou ouverte directement
+   * sur /jouer, ou rouverte depuis l'historique), aucun clic n'a encore eu
+   * lieu et le navigateur refuse tout son. On attend alors le tout premier
+   * toucher de l'écran, où qu'il soit, pour tout débloquer.
+   */
+  armerPremierGeste(): void {
+    if (typeof window === "undefined" || this.gesteArme) return;
+    this.gesteArme = true;
+
+    const reveiller = () => {
+      this.debloquer();
+      if (this.ctx && this.ctx.state === "running") {
+        window.removeEventListener("pointerdown", reveiller);
+        window.removeEventListener("keydown", reveiller);
+        window.removeEventListener("touchstart", reveiller);
+      }
+    };
+
+    window.addEventListener("pointerdown", reveiller);
+    window.addEventListener("keydown", reveiller);
+    window.addEventListener("touchstart", reveiller);
+  }
+
+  /** Pour la page de test du son : dit ce que le navigateur permet. */
+  diagnostic(): {
+    contexte: boolean;
+    etat: string;
+    voix: string | null;
+    voixDisponibles: number;
+  } {
+    const toutes =
+      typeof window !== "undefined" && "speechSynthesis" in window
+        ? window.speechSynthesis.getVoices()
+        : [];
+    const francaises = toutes.filter((v) => v.lang?.toLowerCase().startsWith("fr"));
+
+    // Avant le premier clic, aucune voix n'est encore retenue : on annonce
+    // alors celle qui SERA choisie, sinon la page se contredirait
+    // (« aucune trouvée — 3 disponibles »).
+    const retenue =
+      this.voix ?? francaises.find((v) => v.lang === "fr-FR") ?? francaises[0] ?? null;
+
+    return {
+      contexte: this.ctx !== null,
+      etat: this.ctx?.state ?? "pas encore créé",
+      voix: retenue ? `${retenue.name} (${retenue.lang})` : null,
+      voixDisponibles: francaises.length,
+    };
   }
 
   // ----------------------------------------------------------------- musique
@@ -191,12 +268,12 @@ export class MoteurAudio {
 
     if (note !== null) {
       const douce = ambiance === "attente";
-      this.note(note, douce ? 0.42 : 0.22, "triangle", douce ? 0.25 : 0.32);
+      this.note(note, douce ? 0.42 : 0.22, "triangle", douce ? 0.8 : 0.9);
     }
 
     // Basse légère sur les temps forts : donne l'assise rythmique.
     if (this.pas % (ambiance === "attente" ? 16 : 8) === 0) {
-      this.note(ambiance === "attente" ? NOTE.do3 : NOTE.sol3, 0.3, "sine", 0.3);
+      this.note(ambiance === "attente" ? NOTE.do3 : NOTE.sol3, 0.3, "sine", 0.85);
     }
 
     // Tic-tac pendant une question, qui s'accélère vers la fin.
@@ -217,9 +294,9 @@ export class MoteurAudio {
   bruitageVictoire(): void {
     const suite = [NOTE.do5, NOTE.mi5, NOTE.sol5, NOTE.do6];
     suite.forEach((frequence, index) => {
-      this.note(frequence, 0.16, "square", 0.22, index * 0.09, "bruitages");
+      this.note(frequence, 0.16, "square", 0.55, index * 0.09, "bruitages");
     });
-    this.note(NOTE.sol5, 0.5, "triangle", 0.2, 0.36, "bruitages");
+    this.note(NOTE.sol5, 0.5, "triangle", 0.5, 0.36, "bruitages");
   }
 
   /** Une cascade de petits glissandos : le rire. */
@@ -234,7 +311,7 @@ export class MoteurAudio {
       osc.frequency.setValueAtTime(420 - i * 28, t);
       osc.frequency.exponentialRampToValueAtTime(250 - i * 18, t + 0.11);
       gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.6, t + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
       osc.connect(gain).connect(this.bruitages);
       osc.start(t);
@@ -244,8 +321,8 @@ export class MoteurAudio {
 
   /** Deux notes graves qui descendent : la tortue. */
   bruitageTortue(): void {
-    this.note(196, 0.34, "sine", 0.3, 0, "bruitages");
-    this.note(146.83, 0.5, "sine", 0.3, 0.22, "bruitages");
+    this.note(196, 0.34, "sine", 0.75, 0, "bruitages");
+    this.note(146.83, 0.5, "sine", 0.75, 0.22, "bruitages");
   }
 
   /** Fanfare du podium. */
@@ -260,7 +337,7 @@ export class MoteurAudio {
       [NOTE.do6, 1.0],
     ];
     for (const [frequence, retard] of suite) {
-      this.note(frequence, 0.22, "square", 0.2, retard, "bruitages");
+      this.note(frequence, 0.22, "square", 0.6, retard, "bruitages");
     }
   }
 
@@ -269,21 +346,24 @@ export class MoteurAudio {
   private chercherVoix(): void {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
-    const choisir = () => {
+    const choisir = (): boolean => {
       const toutes = window.speechSynthesis.getVoices();
-      this.voix =
+      const trouvee =
         toutes.find((v) => v.lang === "fr-FR") ??
         toutes.find((v) => v.lang?.toLowerCase().startsWith("fr")) ??
         null;
+      if (trouvee) this.voix = trouvee;
       this.voixCherchee = true;
+      return Boolean(trouvee);
     };
 
-    choisir();
-    if (!this.voix && !this.voixCherchee) {
-      window.speechSynthesis.addEventListener("voiceschanged", choisir, {
-        once: true,
-      });
-    }
+    if (choisir()) return;
+
+    // Sur la plupart des téléphones, la liste des voix arrive APRÈS le
+    // premier appel : sans cet écouteur, on resterait muet pour toujours.
+    window.speechSynthesis.addEventListener("voiceschanged", () => choisir(), {
+      once: true,
+    });
   }
 
   /**
@@ -365,7 +445,7 @@ export class MoteurAudio {
     osc.type = "square";
     osc.frequency.setValueAtTime(presse ? 1400 : 1100, t);
     gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(presse ? 0.16 : 0.09, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(presse ? 0.55 : 0.32, t + 0.005);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
     osc.connect(gain).connect(this.musique);
     osc.start(t);

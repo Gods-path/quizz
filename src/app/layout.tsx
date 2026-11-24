@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Inter } from "next/font/google";
+import { Inter, Orbitron } from "next/font/google";
 import "./globals.css";
 
 /**
@@ -7,9 +7,11 @@ import "./globals.css";
  * télécharge au moment de la construction) : rien n'est demandé à
  * Google depuis le téléphone de l'apprenant, ce qui aide en 3G.
  */
-const fredoka = Fredoka({
+// Orbitron pour tout ce qui doit claquer : scores, chronos, code de partie.
+// (Le style « arcade néon » demandé remplace l'ancienne police Fredoka.)
+const orbitron = Orbitron({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["500", "700", "900"],
   variable: "--police-titre",
   display: "swap",
 });
@@ -38,7 +40,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr">
-      <body className={`${fredoka.variable} ${inter.variable}`}>{children}</body>
+      <body className={`${orbitron.variable} ${inter.variable}`}>{children}</body>
     </html>
   );
 }
