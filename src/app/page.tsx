@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { audio } from "@/lib/audio/engine";
 import { CODE_LENGTH, normalizeGameCode } from "@/lib/code";
@@ -212,6 +213,23 @@ export default function PageEntree() {
         }}
       >
         Le son s'active en entrant dans le quiz.
+      </p>
+
+      {/* Discret, mais présent : sans lui, le formateur doit deviner qu'il
+          faut taper /formateur. La page de destination reste protégée par
+          le mot de passe, donc un apprenant curieux n'y entre pas. */}
+      <p style={{ marginTop: "2.5rem", textAlign: "center" }}>
+        <Link
+          href="/formateur"
+          style={{
+            color: "var(--color-creme-doux)",
+            fontSize: "0.78rem",
+            opacity: 0.75,
+            textDecoration: "none",
+          }}
+        >
+          Espace formateur →
+        </Link>
       </p>
     </main>
   );
