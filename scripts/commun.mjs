@@ -53,6 +53,18 @@ export function creerClient() {
       if (morceau.startsWith("quiz_formateur=")) cookie = morceau.split(";")[0];
     }
 
+    // `brut` sert a verifier les octets exacts (le BOM d'un CSV, que
+    // Response.text() supprime silencieusement).
+    if (options.brut) {
+      const octets = new Uint8Array(await reponse.arrayBuffer());
+      return {
+        ok: reponse.ok,
+        status: reponse.status,
+        octets,
+        corps: new TextDecoder("utf-8").decode(octets),
+      };
+    }
+
     const type = reponse.headers.get("content-type") ?? "";
     const corps = type.includes("application/json")
       ? await reponse.json().catch(() => ({}))

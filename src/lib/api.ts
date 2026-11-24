@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { isAdmin } from "./auth.ts";
+import { GameError } from "./game-server.ts";
 
 export function ok<T>(data: T, status = 200) {
   return NextResponse.json(data as Record<string, unknown>, { status });
@@ -54,6 +55,13 @@ export async function guard(
   try {
     return await work();
   } catch (error) {
+    // Une GameError porte son propre code HTTP (404 pour un code de partie
+    // inconnu, 409 pour « déjà répondu »...). Sans ce cas, tout finirait en
+    // 500 et le téléphone afficherait « erreur serveur » au lieu du vrai
+    // message.
+    if (error instanceof GameError) {
+      return fail(error.message, error.status);
+    }
     console.error("[quiz] erreur de route :", error);
     return fail(messageOf(error), 500);
   }

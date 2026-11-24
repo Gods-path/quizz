@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { GardeFormateur } from "@/components/GardeFormateur";
 
@@ -35,21 +35,40 @@ function Historique() {
   const [parties, setParties] = useState<PartiePassee[] | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const reponse = await fetch("/api/game");
-        const donnees = await reponse.json();
-        if (!reponse.ok) {
-          setErreur(donnees.erreur ?? "Impossible de charger l'historique.");
-          return;
-        }
-        setParties(donnees.parties);
-      } catch {
-        setErreur("Pas de réseau.");
+  const charger = useCallback(async () => {
+    try {
+      const reponse = await fetch("/api/game");
+      const donnees = await reponse.json();
+      if (!reponse.ok) {
+        setErreur(donnees.erreur ?? "Impossible de charger l'historique.");
+        return;
       }
-    })();
+      setParties(donnees.parties);
+    } catch {
+      setErreur("Pas de réseau.");
+    }
   }, []);
+
+  useEffect(() => {
+    void charger();
+  }, [charger]);
+
+  async function supprimer(partie: PartiePassee) {
+    const sur = window.confirm(
+      `Supprimer la partie ${partie.code} du ${new Date(partie.created_at).toLocaleDateString("fr-FR")} ?\n` +
+        `Les résultats de ses ${partie.player_count} joueur(s) seront perdus.\n` +
+        `Le quiz « ${partie.quiz_title} » n'est pas touché.`,
+    );
+    if (!sur) return;
+    const reponse = await fetch(`/api/game/${partie.id}`, { method: "DELETE" });
+    if (!reponse.ok) {
+      const donnees = await reponse.json().catch(() => ({}));
+      setErreur(donnees.erreur ?? "Suppression impossible.");
+      return;
+    }
+    setErreur(null);
+    await charger();
+  }
 
   return (
     <main style={{ margin: "0 auto", maxWidth: 1000, padding: "1.5rem 1rem 4rem" }}>
@@ -118,6 +137,14 @@ function Historique() {
               >
                 Ouvrir
               </Link>
+              <button
+                type="button"
+                className="bouton-secondaire"
+                style={{ borderColor: "var(--color-echec)", color: "#ffc9c0" }}
+                onClick={() => void supprimer(partie)}
+              >
+                Supprimer
+              </button>
             </div>
           </article>
         ))}

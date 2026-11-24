@@ -346,6 +346,20 @@ npm run simulate  # dans un autre
 La simulation joue les 30 questions, vérifie qu'aucune n'est sautée ni rejouée,
 que les points et le bonus de série sont corrects, que le téléphone ne reçoit
 jamais la bonne réponse avant la correction, et que l'export CSV est complet.
+Comptez quelques minutes : elle fait environ 240 appels réseau.
+
+Enfin, le contrôle de sécurité et du direct :
+
+```bash
+npm run verifier
+```
+
+Ce script se met à la place du navigateur d'un apprenant, avec la clé publique :
+il essaie de lire les questions, les bonnes réponses et les jetons (tout doit
+être refusé), tente de se donner 999 999 points (cela doit échouer), et vérifie
+que Supabase Realtime diffuse bien les arrivées de joueurs et les changements
+de question. C'est le test à relancer si vous changez les règles de sécurité
+dans `supabase/schema.sql`.
 
 Les tests n'utilisent **aucune bibliothèque** : ils tournent avec le lanceur
 intégré à Node (`node --test`).
@@ -437,7 +451,7 @@ src/lib/                 le cœur du programme
   audio/                 musique, bruitages et voix
 src/components/          chrono, boutons, podium, confettis…
 src/tests/               les tests automatiques
-scripts/                 import du quiz d'exemple, simulation
+scripts/                 import du quiz d'exemple, simulation, sécurité
 supabase/schema.sql      le script à coller dans Supabase
 ```
 

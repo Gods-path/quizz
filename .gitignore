@@ -10,3 +10,6 @@ next-env.d.ts
 .DS_Store
 .vercel
 coverage/
+
+# captures d'ecran des tests navigateur
+.playwright-mcp/

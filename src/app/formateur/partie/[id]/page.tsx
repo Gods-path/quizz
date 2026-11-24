@@ -83,6 +83,11 @@ function EcranPartie({ gameId }: { gameId: string }) {
   const revelationA = useRef<number>(0);
   const fanfareFaite = useRef(false);
 
+  // Valeurs simples, pour que les minuteurs ne dépendent pas de l'objet
+  // d'état complet (qui change à chaque rafraîchissement).
+  const phaseActuelle = etat?.partie.phase;
+  const indexActuel = etat?.partie.current_index;
+
   // ------------------------------------------------------------- lecture
   const rafraichir = useCallback(async () => {
     try {
@@ -200,12 +205,20 @@ function EcranPartie({ gameId }: { gameId: string }) {
   }, [etat, avancer]);
 
   // Correction affichée : question suivante au bout de 5 secondes.
+  //
+  // Attention au piège : cet effet ne doit dépendre QUE de la phase et du
+  // numéro de question. S'il dépendait de l'état entier (ou de `avancer`,
+  // qui est recréé à chaque état), le rafraîchissement toutes les 3 s
+  // remettrait le minuteur à zéro et les 5 secondes ne tomberaient jamais.
+  const avancerRef = useRef(avancer);
+  avancerRef.current = avancer;
+
   useEffect(() => {
-    if (!etat || etat.partie.phase !== "reveal") return;
+    if (phaseActuelle !== "reveal") return;
     revelationA.current = Date.now();
-    const minuteur = setTimeout(() => void avancer(), PAUSE_CORRECTION_MS);
+    const minuteur = setTimeout(() => void avancerRef.current(), PAUSE_CORRECTION_MS);
     return () => clearTimeout(minuteur);
-  }, [etat?.partie.phase, etat?.partie.current_index, avancer]);
+  }, [phaseActuelle, indexActuel]);
 
   async function basculerPause() {
     if (!etat) return;

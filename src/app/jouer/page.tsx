@@ -204,10 +204,17 @@ export default function PageJeu() {
       moteur.bruitageRire();
       moteur.parler(pourLaVoix(phrase), type === "echecMoqueur" ? "moqueur" : "neutre", 850);
     }
+  }, [etat]);
 
+  // La réaction dure 3 secondes. Ce minuteur est volontairement dans son
+  // propre effet, déclenché par la réaction elle-même : s'il vivait dans
+  // l'effet ci-dessus, le rafraîchissement de l'état toutes les 4 s le
+  // remettrait à zéro et l'écran resterait bloqué sur l'emoji.
+  useEffect(() => {
+    if (!reaction) return;
     const minuteur = setTimeout(() => setReaction(null), DUREE_REACTION_MS);
     return () => clearTimeout(minuteur);
-  }, [etat]);
+  }, [reaction]);
 
   // ------------------------------------------------------ envoi d'une réponse
   async function envoyer(lettres: Letter[]) {

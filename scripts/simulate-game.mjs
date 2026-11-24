@@ -406,18 +406,26 @@ async function main() {
 
   // --------------------------------------------------------- 6. export CSV
   console.log("\n6. Export CSV des résultats");
-  const exportCsv = await formateur.appel(`/api/game/${gameId}/results`);
-  const texte = typeof exportCsv.corps === "string" ? exportCsv.corps : "";
+  const exportCsv = await formateur.appel(`/api/game/${gameId}/results`, {
+    brut: true,
+  });
+  const octets = exportCsv.octets;
+  // Le BOM se vérifie sur les OCTETS : Response.text() le retire tout seul.
+  const texte = exportCsv.corps.replace(/^﻿/, "");
   const lignes = texte.trim().split(/\r?\n/);
 
-  verifier("le CSV commence par le BOM (accents lisibles dans Excel)",
-    texte.charCodeAt(0) === 0xfeff);
+  verifier(
+    "le CSV commence par le BOM (accents lisibles dans Excel)",
+    octets[0] === 0xef && octets[1] === 0xbb && octets[2] === 0xbf,
+    `octets ${octets[0]} ${octets[1]} ${octets[2]}`,
+  );
   verifier("le CSV contient 1 en-tête + 3 apprenants", lignes.length === 4,
     `${lignes.length} lignes`);
   verifier(
     "le CSV a une colonne de réponse par question",
-    (lignes[0].match(/_reponse/g) ?? []).length === 30,
-    `${(lignes[0].match(/_reponse/g) ?? []).length} colonnes`,
+    // Attention : la colonne « bonnes_reponses » contient aussi « _reponse ».
+    (lignes[0].match(/Q\d+_reponse/g) ?? []).length === 30,
+    `${(lignes[0].match(/Q\d+_reponse/g) ?? []).length} colonnes`,
   );
   verifier("le CSV contient « Réussi » pour Aline", /Aline/.test(texte) && /Réussi/.test(texte));
   verifier(
