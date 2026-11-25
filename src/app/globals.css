@@ -645,3 +645,17 @@ input::placeholder {
   min-width: 4ch;
   text-align: right;
 }
+
+/* Visible seulement par les lecteurs d'écran : sert quand une image
+   porte déjà l'information (le logo contient le nom de l'application). */
+.lecture-ecran {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

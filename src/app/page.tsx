@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/Logo";
 import { audio } from "@/lib/audio/engine";
 import { CODE_LENGTH, normalizeGameCode } from "@/lib/code";
 import {
@@ -101,11 +102,11 @@ export default function PageEntree() {
       }}
     >
       <div className="anim-apparait" style={{ textAlign: "center", marginBottom: "1.6rem" }}>
-        <div style={{ fontSize: "3rem" }} aria-hidden>
-          🎯
-        </div>
-        <h1 style={{ fontSize: "2.1rem", margin: "0.3rem 0" }}>Quiz en direct</h1>
-        <p style={{ color: "var(--color-encre-doux)", margin: 0 }}>
+        <Logo largeur={300} priority />
+        {/* Le logo porte déjà le nom : le titre reste pour les lecteurs
+            d'écran et les moteurs, mais n'est pas affiché deux fois. */}
+        <h1 className="lecture-ecran">Quizz</h1>
+        <p style={{ color: "var(--color-encre-doux)", margin: "0.6rem 0 0" }}>
           Entrez votre nom et le code affiché par le formateur.
         </p>
       </div>

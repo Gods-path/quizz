@@ -8,6 +8,7 @@ import { Chrono } from "@/components/Chrono";
 import { ClassementPlein } from "@/components/ClassementPlein";
 import { Confettis } from "@/components/Confettis";
 import { GardeFormateur } from "@/components/GardeFormateur";
+import { Logo } from "@/components/Logo";
 import { Pastille } from "@/components/Pastille";
 import { Podium } from "@/components/Podium";
 import { audio } from "@/lib/audio/engine";
@@ -329,7 +330,10 @@ function EcranPartie({ gameId }: { gameId: string }) {
 
         <div style={{ margin: "0 auto", maxWidth: 1200 }}>
           <div style={{ textAlign: "center" }}>
-            <p className="etiquette">{partie.quiz_title}</p>
+            <Logo largeur={320} priority />
+            <p className="etiquette" style={{ display: "block", margin: "0.6rem auto 0", width: "fit-content" }}>
+              {partie.quiz_title}
+            </p>
             <h1 style={{ fontSize: "clamp(1.4rem, 3vw, 2.2rem)", margin: "0.8rem 0 0.2rem" }}>
               Rejoignez le quiz
             </h1>
@@ -359,7 +363,10 @@ function EcranPartie({ gameId }: { gameId: string }) {
               >
                 Code du quiz
               </div>
-              <div className="code-partie" style={{ color: "var(--color-vert-clair)" }}>
+              {/* Pas de couleur en ligne ici : la feuille de style met du
+                  blanc sur le vert. Un reste de l'ancien thème sombre
+                  donnait du vert clair sur vert, donc illisible. */}
+              <div className="code-partie">
                 {partie.code}
               </div>
             </div>

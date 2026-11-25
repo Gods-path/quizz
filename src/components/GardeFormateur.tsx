@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Logo } from "./Logo";
 
 /**
  * Demande le mot de passe formateur, puis laisse passer.
@@ -79,10 +80,8 @@ export function GardeFormateur({ children }: { children: React.ReactNode }) {
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "1.4rem" }}>
-          <div style={{ fontSize: "3rem" }} aria-hidden>
-            🎛️
-          </div>
-          <h1 style={{ fontSize: "1.9rem", marginBottom: "0.2rem" }}>
+          <Logo largeur={220} priority />
+          <h1 style={{ fontSize: "1.6rem", margin: "0.6rem 0 0.2rem" }}>
             Espace formateur
           </h1>
           <p style={{ color: "var(--color-encre-doux)", margin: 0 }}>

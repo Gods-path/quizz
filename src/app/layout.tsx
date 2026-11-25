@@ -22,7 +22,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Quiz en direct",
+  title: "Quizz",
   description:
     "Quiz en direct pour la classe : le formateur projette, les apprenants jouent sur leur téléphone.",
 };
