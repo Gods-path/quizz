@@ -488,6 +488,7 @@ export default function PageJeu() {
           ) : (
             <div style={{ marginTop: "1rem", textAlign: "left" }}>
               <h2 style={{ fontSize: "1.3rem" }}>Correction</h2>
+              <div className="liste-correction">
               {correction.map((ligne) => (
                 <div
                   key={ligne.numero}
@@ -531,6 +532,7 @@ export default function PageJeu() {
                   )}
                 </div>
               ))}
+              </div>
             </div>
           )}
         </div>

@@ -552,6 +552,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
           joueurs={classement}
           titre={derniere ? "Classement final" : "Classement"}
           sousTitre={`Après la question ${partie.current_index + 1} sur ${partie.question_count}`}
+          espaceBas
         />
 
         {/* Les commandes restent accessibles : le formateur n'est jamais
