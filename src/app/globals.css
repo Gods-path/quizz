@@ -1,45 +1,49 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   STYLE ARCADE NÉON
-   Fond presque noir, grille synthwave, néons cyan et magenta, cadres
-   lumineux. Pensé pour être spectaculaire au vidéoprojecteur tout en
-   restant lisible, et léger sur un téléphone d'entrée de gamme (aucune
-   image, aucune ombre animée en continu).
+   STYLE « QUIZ ILLUSTRÉ »
+   Fond vert clair, formes pleines, couleurs franches, pas de dégradés ni
+   de lueurs : l'esprit des affiches de quiz scolaires. Les volumes sont
+   donnés par des ombres plates (un trait épais sous l'élément), ce qui
+   reste lisible au vidéoprojecteur et très léger sur un téléphone.
    ========================================================================== */
 
 @theme {
-  /* Fonds, du plus sombre au plus clair */
-  --color-nuit: #05030e;
-  --color-prune: #0d0820;
-  --color-prune-clair: #17103a;
-  --color-bord: #3d2b8c;
+  /* Fonds */
+  --color-fond: #e9f4e6;
+  --color-fond-doux: #f6fbf4;
+  --color-carte: #ffffff;
 
-  /* Néons */
-  --color-accent: #ff2e97;
-  --color-accent-clair: #ff7cc3;
-  --color-cyan: #25e5ff;
-  --color-cyan-doux: #8af2ff;
+  /* Le vert de l'affiche, en trois valeurs */
+  --color-vert: #3aa757;
+  --color-vert-fonce: #2a8041;
+  --color-vert-clair: #7cd194;
+
+  /* Les couleurs franches */
+  --color-jaune: #ffc72c;
+  --color-jaune-fonce: #d9a200;
+  --color-rouge: #e8453c;
+  --color-rouge-fonce: #b92f28;
+  --color-bleu: #3b82c4;
+  --color-bleu-fonce: #2a6197;
+  --color-violet: #8e44ad;
 
   /* Textes */
-  --color-creme: #eef4ff;
-  --color-creme-doux: #9aa9d8;
+  --color-encre: #23313d;
+  --color-encre-doux: #5d6f7c;
 
-  /* Les 4 couleurs de réponse, version néon */
-  --color-reponse-a: #ff2d55;
-  --color-reponse-b: #00a6ff;
-  --color-reponse-c: #ffc400;
-  --color-reponse-d: #00e35f;
+  /* Les 4 couleurs de réponse */
+  --color-reponse-a: #e8453c;
+  --color-reponse-b: #3b82c4;
+  --color-reponse-c: #ffc72c;
+  --color-reponse-d: #3aa757;
 
-  --color-succes: #00e35f;
-  --color-echec: #ff2d55;
+  --color-succes: #3aa757;
+  --color-echec: #e8453c;
 }
 
-/* ATTENTION : ces deux alias ne peuvent PAS vivre dans @theme ci-dessus.
-   @theme les place sur :root, or next/font déclare --police-titre et
-   --police-texte sur <body>. L'alias y serait donc invalide (variable
-   inconnue) et la police de titre ne s'appliquerait jamais — c'était le
-   cas, silencieusement. On les définit sur body, où les deux existent. */
+/* Ces alias ne peuvent PAS vivre dans @theme : il les placerait sur :root,
+   alors que next/font déclare les polices sur <body>. */
 body {
   --font-titre: var(--police-titre), "Trebuchet MS", sans-serif;
   --font-texte: var(--police-texte), system-ui, sans-serif;
@@ -48,17 +52,13 @@ body {
 /* -------------------------------------------------------------------------- */
 
 html {
-  background-color: var(--color-nuit);
+  background-color: var(--color-fond);
   overflow-x: hidden; /* jamais de défilement horizontal, surtout sur téléphone */
 }
 
 body {
-  background:
-    radial-gradient(ellipse 80% 55% at 50% -10%, rgba(255, 46, 151, 0.22), transparent 70%),
-    radial-gradient(ellipse 70% 50% at 50% 110%, rgba(37, 229, 255, 0.18), transparent 70%),
-    var(--color-nuit);
-  background-attachment: fixed;
-  color: var(--color-creme);
+  background-color: var(--color-fond);
+  color: var(--color-encre);
   font-family: var(--font-texte);
   min-height: 100dvh;
   overflow-x: hidden;
@@ -67,47 +67,31 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* La grille synthwave qui fuit vers l'horizon, en bas de l'écran. */
+/* Les confettis du décor : des points de couleur posés au loin. Dessinés
+   en CSS, donc aucune image à télécharger. */
 body::before {
   background-image:
-    repeating-linear-gradient(
-      90deg,
-      rgba(37, 229, 255, 0.22) 0 1px,
-      transparent 1px 64px
-    ),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 46, 151, 0.18) 0 1px,
-      transparent 1px 48px
-    );
+    radial-gradient(circle, rgba(58, 167, 87, 0.22) 3px, transparent 4px),
+    radial-gradient(circle, rgba(255, 199, 44, 0.32) 2px, transparent 3px),
+    radial-gradient(circle, rgba(59, 130, 196, 0.22) 2px, transparent 3px);
+  background-position:
+    0 0,
+    60px 90px,
+    130px 40px;
+  background-size:
+    180px 180px,
+    180px 180px,
+    180px 180px;
   content: "";
-  height: 38vh;
-  inset: auto 0 0 0;
-  mask-image: linear-gradient(to top, #000 10%, transparent 100%);
+  inset: 0;
   pointer-events: none;
   position: fixed;
   z-index: 0;
 }
 
-/* Fines lignes de balayage, comme un vieil écran. Statiques : aucun coût. */
-body::after {
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.22) 0 1px,
-    transparent 1px 3px
-  );
-  content: "";
-  inset: 0;
-  opacity: 0.45;
-  pointer-events: none;
-  position: fixed;
-  z-index: 1;
-}
-
-/* Le contenu passe au-dessus du décor. */
 body > * {
   position: relative;
-  z-index: 2;
+  z-index: 1;
 }
 
 h1,
@@ -115,31 +99,25 @@ h2,
 h3,
 .titre {
   font-family: var(--font-titre);
-  letter-spacing: 0.03em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-h1 {
-  text-shadow:
-    0 0 12px rgba(37, 229, 255, 0.45),
-    0 0 36px rgba(255, 46, 151, 0.25);
-}
-
-/* Les capitales sont réservées aux éléments courts (scores, codes,
-   boutons, étiquettes). Une question française tout en capitales serait
-   illisible au vidéoprojecteur comme sur un téléphone. */
-.titre,
-.code-partie,
-.etiquette,
-.bouton {
-  text-transform: uppercase;
-}
-
-/* Le texte des questions reste en Inter, minuscules : plus lisible de loin
-   et sur un petit écran qu'une police d'affichage tout en capitales. */
+/* Le texte d'une question garde la police de lecture. */
 .question-texte,
 .texte-normal {
   font-family: var(--font-texte);
+  font-weight: 600;
   letter-spacing: normal;
+  text-transform: none;
+}
+
+/* Les chiffres qui portent une information restent en police de texte :
+   scores et rangs doivent se lire sans la moindre hésitation. */
+.chiffre {
+  font-family: var(--font-texte);
+  font-weight: 800;
+  letter-spacing: 0;
   text-transform: none;
 }
 
@@ -152,11 +130,10 @@ select {
 
 input,
 select {
-  background-color: rgba(13, 8, 32, 0.9);
-  border: 2px solid var(--color-bord);
-  border-radius: 0.4rem;
-  box-shadow: inset 0 0 12px rgba(37, 229, 255, 0.12);
-  color: var(--color-creme);
+  background-color: #fff;
+  border: 3px solid #dbe6d6;
+  border-radius: 0.9rem;
+  color: var(--color-encre);
   padding: 0.9rem 1rem;
   width: 100%;
 }
@@ -164,36 +141,17 @@ select {
 input:focus-visible,
 select:focus-visible,
 button:focus-visible {
-  border-color: var(--color-cyan);
-  outline: 2px solid var(--color-cyan);
+  border-color: var(--color-vert);
+  outline: 3px solid var(--color-vert-clair);
   outline-offset: 2px;
 }
 
 input::placeholder {
-  color: #6b7bb0;
+  color: #9fb0a6;
 }
 
 /* ==========================================================================
-   Néons réutilisables
-   ========================================================================== */
-
-.neon-cyan {
-  color: var(--color-cyan);
-  text-shadow:
-    0 0 6px rgba(37, 229, 255, 0.9),
-    0 0 20px rgba(37, 229, 255, 0.55);
-}
-
-.neon-rose {
-  color: var(--color-accent-clair);
-  text-shadow:
-    0 0 6px rgba(255, 46, 151, 0.9),
-    0 0 22px rgba(255, 46, 151, 0.55);
-}
-
-/* ==========================================================================
-   Animations courtes, toutes coupées si la personne préfère
-   réduire les mouvements.
+   Animations courtes, coupées si la personne préfère réduire les mouvements
    ========================================================================== */
 
 @keyframes apparait {
@@ -221,15 +179,13 @@ input::placeholder {
   }
 }
 
-@keyframes pulse-neon {
+@keyframes pulse-douce {
   0%,
   100% {
-    filter: brightness(1);
     transform: scale(1);
   }
   50% {
-    filter: brightness(1.25);
-    transform: scale(1.03);
+    transform: scale(1.05);
   }
 }
 
@@ -252,20 +208,14 @@ input::placeholder {
   }
 }
 
-@keyframes scintille {
-  0%,
-  92%,
-  100% {
+@keyframes glisse-droite {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
     opacity: 1;
-  }
-  94% {
-    opacity: 0.55;
-  }
-  96% {
-    opacity: 1;
-  }
-  98% {
-    opacity: 0.75;
+    transform: none;
   }
 }
 
@@ -276,7 +226,7 @@ input::placeholder {
   animation: rebondit 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 .anim-pulse {
-  animation: pulse-neon 1.5s ease-in-out infinite;
+  animation: pulse-douce 1.5s ease-in-out infinite;
 }
 .anim-tremble {
   animation: tremble 0.5s ease-in-out 2;
@@ -284,8 +234,8 @@ input::placeholder {
 .anim-monte {
   animation: monte 0.6s ease-out both;
 }
-.anim-scintille {
-  animation: scintille 5s linear infinite;
+.anim-glisse {
+  animation: glisse-droite 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -299,40 +249,24 @@ input::placeholder {
 }
 
 /* ==========================================================================
-   Boutons de réponse : plaques d'arcade lumineuses.
+   Boutons de réponse : des plaques pleines, avec un trait épais dessous.
    Au moins 64 px de haut, comme demandé pour les téléphones.
    ========================================================================== */
 
 .bouton-reponse {
   align-items: center;
-  /* Repli pour les navigateurs sans color-mix() (Chrome < 111, qu'on
-     trouve encore sur des téléphones d'entrée de gamme non mis à jour) :
-     la déclaration simple reste appliquée si la suivante est ignorée. */
   background: var(--teinte);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--teinte) 85%, #000) 0%,
-    color-mix(in srgb, var(--teinte) 55%, #000) 100%
-  );
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  border-color: color-mix(in srgb, var(--teinte) 70%, #fff);
-  border-radius: 0.5rem;
-  box-shadow:
-    0 0 18px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 5px 0 rgba(0, 0, 0, 0.45);
-  box-shadow:
-    0 0 18px color-mix(in srgb, var(--teinte) 55%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 5px 0 color-mix(in srgb, var(--teinte) 35%, #000);
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 6px 0 var(--teinte-ombre);
   color: #fff;
   cursor: pointer;
   display: flex;
+  font-weight: 700;
   gap: 0.9rem;
   min-height: 64px;
   padding: 1rem 1.1rem;
   text-align: left;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
   transition:
     transform 0.12s ease,
     box-shadow 0.12s ease,
@@ -341,14 +275,7 @@ input::placeholder {
 }
 
 .bouton-reponse:active:not(:disabled) {
-  box-shadow:
-    0 0 24px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 1px 0 rgba(0, 0, 0, 0.45);
-  box-shadow:
-    0 0 24px color-mix(in srgb, var(--teinte) 70%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 1px 0 color-mix(in srgb, var(--teinte) 35%, #000);
+  box-shadow: 0 2px 0 var(--teinte-ombre);
   transform: translateY(4px);
 }
 
@@ -357,19 +284,15 @@ input::placeholder {
 }
 
 .bouton-reponse[data-choisi="non"] {
-  filter: saturate(0.25) brightness(0.5);
+  filter: saturate(0.3) opacity(0.55);
 }
 
 .bouton-reponse .lettre {
   align-items: center;
-  background: rgba(0, 0, 0, 0.45);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 0.35rem;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 0.6rem;
   display: flex;
   flex: 0 0 auto;
-  /* Police de TEXTE, pas de titre : en Orbitron, le C et le D se
-     confondent avec des carrés, alors que l'apprenant doit retrouver la
-     même lettre sur son téléphone. */
   font-family: var(--font-texte);
   font-weight: 800;
   height: 2.6rem;
@@ -379,143 +302,103 @@ input::placeholder {
 
 .rep-a {
   --teinte: var(--color-reponse-a);
+  --teinte-ombre: var(--color-rouge-fonce);
 }
 .rep-b {
   --teinte: var(--color-reponse-b);
+  --teinte-ombre: var(--color-bleu-fonce);
 }
 .rep-c {
   --teinte: var(--color-reponse-c);
-  color: #2b1d00;
-  text-shadow: none;
-}
-/* La pastille de lettre a un fond NOIR translucide : sur le bouton jaune,
-   le texte reste foncé, mais la lettre, elle, doit rester claire. */
-.rep-c .lettre {
-  color: #fff;
+  --teinte-ombre: var(--color-jaune-fonce);
+  color: #4a3600;
 }
 .rep-d {
   --teinte: var(--color-reponse-d);
+  --teinte-ombre: var(--color-vert-fonce);
 }
 
 /* ==========================================================================
-   Cadres, boutons, étiquettes
+   Cartes, boutons, étiquettes
    ========================================================================== */
 
 .carte {
-  background:
-    linear-gradient(180deg, rgba(37, 229, 255, 0.05), transparent 40%),
-    rgba(13, 8, 32, 0.82);
-  border: 1px solid var(--color-bord);
-  border-radius: 0.6rem;
-  box-shadow:
-    0 0 24px rgba(61, 43, 140, 0.35),
-    inset 0 0 28px rgba(37, 229, 255, 0.05);
+  background: var(--color-carte);
+  border: none;
+  border-radius: 1.25rem;
+  box-shadow: 0 6px 0 rgba(35, 49, 61, 0.1);
   padding: 1.25rem;
-  position: relative;
-}
-
-/* Coins d'arcade : deux petits traits cyan en haut à gauche et en bas à droite. */
-.carte::before,
-.carte::after {
-  border-color: var(--color-cyan);
-  content: "";
-  height: 14px;
-  position: absolute;
-  width: 14px;
-}
-/* À l'intérieur du cadre, et non à cheval dessus : un débordement d'1 px
-   suffisait à faire apparaître une barre de défilement dans les cartes
-   qui contiennent un tableau. */
-.carte::before {
-  border-left: 2px solid;
-  border-top: 2px solid;
-  left: 0;
-  top: 0;
-}
-.carte::after {
-  border-bottom: 2px solid;
-  border-right: 2px solid;
-  bottom: 0;
-  right: 0;
 }
 
 .bouton {
-  background: linear-gradient(180deg, var(--color-accent) 0%, #b51468 100%);
-  border: 2px solid var(--color-accent-clair);
-  border-radius: 0.45rem;
-  box-shadow:
-    0 0 18px rgba(255, 46, 151, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 4px 0 #6d0c3e;
+  background: var(--color-vert);
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 6px 0 var(--color-vert-fonce);
   color: #fff;
   cursor: pointer;
   font-family: var(--font-titre);
-  font-size: 1rem;
-  letter-spacing: 0.08em;
+  font-size: 1.05rem;
   min-height: 56px;
   padding: 0.85rem 1.4rem;
-  text-transform: uppercase;
   transition:
     transform 0.12s ease,
     box-shadow 0.12s ease;
 }
 
 .bouton:active:not(:disabled) {
-  box-shadow:
-    0 0 24px rgba(255, 46, 151, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 1px 0 #6d0c3e;
-  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--color-vert-fonce);
+  transform: translateY(4px);
 }
 
 .bouton:disabled {
-  background: #241a45;
-  border-color: #3a2b6b;
-  box-shadow: none;
-  color: #6f7cab;
+  background: #c7d3c9;
+  box-shadow: 0 6px 0 #aebcb1;
+  color: #76867c;
   cursor: not-allowed;
 }
 
 .bouton-secondaire {
-  background: rgba(23, 16, 58, 0.8);
-  border: 2px solid var(--color-bord);
-  border-radius: 0.45rem;
-  box-shadow: none;
-  color: var(--color-cyan-doux);
+  background: #fff;
+  border: 3px solid #d7e3d2;
+  border-radius: 1rem;
+  box-shadow: 0 4px 0 rgba(35, 49, 61, 0.08);
+  color: var(--color-encre);
   cursor: pointer;
   font-family: var(--font-texte);
   font-size: 0.95rem;
+  font-weight: 600;
   min-height: 48px;
   padding: 0.6rem 1rem;
   transition:
     border-color 0.15s ease,
-    box-shadow 0.15s ease;
+    transform 0.12s ease;
 }
 
 .bouton-secondaire:hover {
-  border-color: var(--color-cyan);
-  box-shadow: 0 0 14px rgba(37, 229, 255, 0.35);
+  border-color: var(--color-vert);
+}
+
+.bouton-secondaire:active {
+  box-shadow: 0 1px 0 rgba(35, 49, 61, 0.08);
+  transform: translateY(3px);
 }
 
 .etiquette {
-  background: rgba(37, 229, 255, 0.1);
-  border: 1px solid rgba(37, 229, 255, 0.45);
-  border-radius: 0.3rem;
-  color: var(--color-cyan-doux);
+  background: var(--color-vert);
+  border-radius: 999px;
+  color: #fff;
   display: inline-block;
   font-family: var(--font-titre);
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  padding: 0.3rem 0.7rem;
-  text-transform: uppercase;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.9rem;
 }
 
 .erreur {
-  background: rgba(255, 45, 85, 0.12);
-  border: 2px solid var(--color-echec);
-  border-radius: 0.45rem;
-  box-shadow: 0 0 18px rgba(255, 45, 85, 0.3);
-  color: #ffd2da;
+  background: #ffe9e7;
+  border: 3px solid var(--color-rouge);
+  border-radius: 1rem;
+  color: #8e2019;
   padding: 0.9rem 1rem;
 }
 
@@ -526,7 +409,6 @@ input::placeholder {
 .ecran-projete .question-texte {
   font-size: clamp(1.8rem, 3.6vw, 3.4rem);
   line-height: 1.15;
-  text-shadow: 0 0 24px rgba(37, 229, 255, 0.35);
 }
 
 .ecran-projete .bouton-reponse {
@@ -540,32 +422,179 @@ input::placeholder {
   width: 3.2rem;
 }
 
-/* Le code de la partie : l'élément le plus lumineux de la salle. */
+/* Le code de la partie : l'élément le plus visible de la salle. */
 .code-partie {
-  color: var(--color-cyan);
+  background: var(--color-vert);
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 0 var(--color-vert-fonce);
+  color: #fff;
+  display: inline-block;
   font-family: var(--font-titre);
-  font-size: clamp(3.2rem, 10.5vw, 8.5rem);
-  letter-spacing: 0.14em;
+  font-size: clamp(2.8rem, 9vw, 7rem);
+  letter-spacing: 0.1em;
   line-height: 1;
-  text-shadow:
-    0 0 10px rgba(37, 229, 255, 0.95),
-    0 0 30px rgba(37, 229, 255, 0.7),
-    0 0 70px rgba(37, 229, 255, 0.45);
+  padding: 0.3em 0.4em 0.35em 0.5em;
 }
 
-/* Barre de progression facon jauge d'énergie. */
+/* Barre de progression */
 .jauge {
-  background: rgba(13, 8, 32, 0.9);
-  border: 1px solid var(--color-bord);
+  background: #d6e5d2;
   border-radius: 999px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
-  height: 14px;
+  height: 16px;
   overflow: hidden;
 }
 
 .jauge > div {
-  background: linear-gradient(90deg, var(--color-cyan), var(--color-accent));
-  box-shadow: 0 0 14px rgba(255, 46, 151, 0.6);
+  background: var(--color-vert);
+  border-radius: 999px;
   height: 100%;
   transition: width 0.4s ease;
+}
+
+/* ==========================================================================
+   ÉCRAN APPRENANT : il doit tenir sur un petit téléphone comme sur une
+   tablette, debout comme couché, sans jamais défiler horizontalement.
+   ========================================================================== */
+
+.ecran-joueur {
+  margin: 0 auto;
+  max-width: 560px;
+  min-height: 100dvh;
+  padding: clamp(0.6rem, 2.5vw, 1.25rem);
+  width: 100%;
+}
+
+.ecran-joueur .question-texte {
+  font-size: clamp(1.05rem, 4.6vw, 1.75rem);
+  line-height: 1.25;
+}
+
+.ecran-joueur .bouton-reponse {
+  font-size: clamp(0.95rem, 3.6vw, 1.2rem);
+  padding: clamp(0.7rem, 2.6vw, 1rem) clamp(0.7rem, 2.6vw, 1.1rem);
+}
+
+.ecran-joueur .bouton-reponse .lettre {
+  font-size: clamp(0.95rem, 3.6vw, 1.25rem);
+  height: clamp(2.2rem, 8vw, 2.8rem);
+  width: clamp(2.2rem, 8vw, 2.8rem);
+}
+
+.grille-reponses {
+  display: grid;
+  gap: clamp(0.5rem, 2vw, 0.75rem);
+}
+
+/* Assez de place (tablette, ou téléphone tenu à l'horizontale) :
+   deux colonnes, pour que les quatre réponses restent visibles. */
+@media (min-width: 620px), (orientation: landscape) and (min-width: 480px) {
+  .grille-reponses {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Téléphone couché : l'écran est très bas. On resserre tout pour que les
+   QUATRE réponses restent visibles sans défiler — sinon l'apprenant
+   répond sans avoir vu les deux dernières.
+   Les boutons gardent leurs 64 px : c'est la cible du doigt. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .ecran-joueur {
+    max-width: none;
+    padding-bottom: 0.4rem;
+    padding-top: 0.4rem;
+  }
+
+  .ecran-joueur .question-texte {
+    font-size: clamp(0.95rem, 3.4vh, 1.2rem);
+    margin: 0.3rem 0 0.6rem !important;
+  }
+
+  .ecran-joueur .bouton-reponse {
+    font-size: clamp(0.85rem, 2.9vh, 1.05rem);
+    min-height: 64px;
+    padding: 0.45rem 0.7rem;
+  }
+
+  .ecran-joueur .bouton-reponse .lettre {
+    font-size: 1rem;
+    height: 2.1rem;
+    width: 2.1rem;
+  }
+
+  .chrono-joueur {
+    transform: scale(0.72);
+    transform-origin: right center;
+  }
+}
+
+/* ==========================================================================
+   CLASSEMENT PLEIN ÉCRAN, entre deux questions, sur l'écran projeté.
+   Les barres poussent depuis la gauche, les unes après les autres, pour
+   que toute la salle voie les positions bouger avant la question suivante.
+   ========================================================================== */
+
+.classement-plein {
+  align-items: center;
+  background: var(--color-vert);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: clamp(1rem, 3vw, 2.5rem);
+}
+
+.classement-plein .ligne {
+  align-items: center;
+  display: grid;
+  gap: clamp(0.5rem, 1.5vw, 1.2rem);
+  grid-template-columns: auto 1fr auto;
+  margin-bottom: clamp(0.45rem, 1.3vh, 1rem);
+  width: min(1100px, 100%);
+}
+
+.classement-plein .rang {
+  align-items: center;
+  background: #fff;
+  border-radius: 50%;
+  color: var(--color-vert-fonce);
+  display: flex;
+  flex: 0 0 auto;
+  font-size: clamp(1.1rem, 2.2vw, 2rem);
+  font-weight: 800;
+  height: clamp(2.4rem, 5vw, 3.6rem);
+  justify-content: center;
+  width: clamp(2.4rem, 5vw, 3.6rem);
+}
+
+.classement-plein .barre {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  height: clamp(2.4rem, 5vw, 3.6rem);
+  overflow: hidden;
+}
+
+.classement-plein .barre > span {
+  align-items: center;
+  background: #fff;
+  border-radius: 999px;
+  color: var(--color-encre);
+  display: flex;
+  font-size: clamp(0.95rem, 1.8vw, 1.6rem);
+  font-weight: 700;
+  height: 100%;
+  /* Une barre n'est jamais plus étroite que le nom qu'elle porte :
+     sinon, avec peu de points, « Marie » devenait « Ma… ». */
+  min-width: max-content;
+  padding: 0 1rem;
+  transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+}
+
+.classement-plein .points {
+  color: #fff;
+  flex: 0 0 auto;
+  font-size: clamp(1.1rem, 2.2vw, 2rem);
+  font-weight: 800;
+  min-width: 4ch;
+  text-align: right;
 }

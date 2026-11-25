@@ -42,9 +42,10 @@ export function BoutonReponse({
       data-choisi={choisi === false ? "non" : "oui"}
       style={
         estime === "bonne"
-          ? { outline: "4px solid var(--color-succes)", outlineOffset: 3 }
+          ? { outline: "5px solid var(--color-succes)", outlineOffset: 3 }
           : estime === "mauvaise"
-            ? { filter: "saturate(0.3) brightness(0.55)" }
+            ? // Sur fond clair, assombrir salit la couleur : on estompe.
+              { filter: "grayscale(0.5)", opacity: 0.45 }
             : undefined
       }
     >

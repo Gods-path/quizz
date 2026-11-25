@@ -29,8 +29,13 @@ export async function POST(request: Request) {
 
     try {
       const player = await verifyPlayer(playerId, token);
-      const game = await loadGame(player.game_id);
-      const players = await playersOf(game.id);
+
+      // Ces deux lectures ne dépendent pas l'une de l'autre : enchaînées,
+      // elles doublaient inutilement l'attente du téléphone.
+      const [game, players] = await Promise.all([
+        loadGame(player.game_id),
+        playersOf(player.game_id),
+      ]);
       const classement = rank(players);
       const moi = classement.find((entry) => entry.id === player.id);
 
@@ -74,18 +79,21 @@ export async function POST(request: Request) {
         });
       }
 
+      // La question et la réponse du joueur, en parallèle elles aussi.
       const client = supabaseAdmin();
-      const { data: answerRow } = await client
-        .from("answers")
-        .select("*")
-        .eq("player_id", player.id)
-        .eq("question_index", game.current_index)
-        .maybeSingle();
-      const answer = answerRow as AnswerRow | null;
+      const [question, answerResultat] = await Promise.all([
+        questionAt(game.quiz_id, game.current_index),
+        client
+          .from("answers")
+          .select("*")
+          .eq("player_id", player.id)
+          .eq("question_index", game.current_index)
+          .maybeSingle(),
+      ]);
+      const answer = answerResultat.data as AnswerRow | null;
 
       // --- Question en cours : AUCUNE bonne réponse n'est envoyée ---
       if (game.phase === "question") {
-        const question = await questionAt(game.quiz_id, game.current_index);
         return ok({
           ...base,
           question: toSafeQuestion(question, game),
@@ -98,7 +106,6 @@ export async function POST(request: Request) {
       }
 
       // --- Correction : maintenant, on peut tout dire ---
-      const question = await questionAt(game.quiz_id, game.current_index);
       const gagne = answer ? answer.points + answer.streak_bonus : 0;
 
       return ok({

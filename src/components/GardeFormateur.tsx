@@ -85,7 +85,7 @@ export function GardeFormateur({ children }: { children: React.ReactNode }) {
           <h1 style={{ fontSize: "1.9rem", marginBottom: "0.2rem" }}>
             Espace formateur
           </h1>
-          <p style={{ color: "var(--color-creme-doux)", margin: 0 }}>
+          <p style={{ color: "var(--color-encre-doux)", margin: 0 }}>
             Entrez le mot de passe pour continuer.
           </p>
         </div>
@@ -119,7 +119,7 @@ export function GardeFormateur({ children }: { children: React.ReactNode }) {
 
         <p
           style={{
-            color: "var(--color-creme-doux)",
+            color: "var(--color-encre-doux)",
             fontSize: "0.78rem",
             marginTop: "1.4rem",
             textAlign: "center",

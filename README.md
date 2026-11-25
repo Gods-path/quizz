@@ -168,7 +168,13 @@ titre, 45 minutes, choisir le fichier.
 6. **Lancer le quiz** dès qu'il y a au moins un joueur.
 7. Pendant le quiz, vous disposez de **Pause**, **Corriger maintenant**,
    **Question suivante** et **Terminer le quiz**.
-8. À la fin : podium, confettis, tableau complet, et
+8. Après chaque question, l'écran projeté enchaîne deux temps :
+   d'abord **la bonne réponse** et la répartition des réponses, puis le
+   **classement en plein écran**, barres animées, pour que chacun voie sa
+   position avant la question suivante. Les apprenants voient le même
+   classement sur leur téléphone, avec leur ligne mise en évidence.
+   Vous pouvez couper court à tout moment avec **Question suivante**.
+9. À la fin : podium, confettis, tableau complet, et
    **Exporter les résultats en CSV**.
 
 > **Gardez l'écran formateur ouvert** du début à la fin : c'est lui qui fait

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BoutonReponse } from "@/components/BoutonReponse";
 import { Chrono } from "@/components/Chrono";
+import { ClassementPlein } from "@/components/ClassementPlein";
 import { Confettis } from "@/components/Confettis";
 import { audio } from "@/lib/audio/engine";
 import { EMOJIS, phraseAuHasard, pourLaVoix, type Reaction } from "@/lib/audio/phrases";
@@ -54,7 +55,7 @@ interface EtatJoueur {
     reussi: boolean;
     seuil: number;
   };
-  top5?: { rank: number; name: string; score: number }[];
+  top5?: { id: string; rank: number; name: string; score: number }[];
 }
 
 interface LigneCorrection {
@@ -70,6 +71,8 @@ interface LigneCorrection {
 }
 
 const DUREE_REACTION_MS = 3000;
+/** Même valeur que sur l'écran projeté : les deux restent synchronisés. */
+const DUREE_AVANT_CLASSEMENT_MS = 4500;
 
 export default function PageJeu() {
   const router = useRouter();
@@ -78,6 +81,15 @@ export default function PageJeu() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [selection, setSelection] = useState<Letter[]>([]);
   const [envoi, setEnvoi] = useState(false);
+  /**
+   * La réponse que ce téléphone vient d'envoyer, affichée IMMÉDIATEMENT.
+   * Sans cela, l'apprenant reste devant les boutons pendant tout l'aller-
+   * retour vers le serveur (facile à vivre comme un plantage en 3G).
+   * Si le serveur refuse, on rend la main et on affiche l'erreur.
+   */
+  const [envoye, setEnvoye] = useState<{ index: number; lettres: Letter[] } | null>(
+    null,
+  );
   const [restantMs, setRestantMs] = useState(0);
   const [reaction, setReaction] = useState<{
     type: Reaction;
@@ -86,6 +98,10 @@ export default function PageJeu() {
     serie: string | null;
   } | null>(null);
   const [correction, setCorrection] = useState<LigneCorrection[] | null>(null);
+  /** Pendant la correction : d'abord la réponse, puis le classement. */
+  const [etapeReveal, setEtapeReveal] = useState<"reponse" | "classement">(
+    "reponse",
+  );
 
   const dernierePhase = useRef<string>("");
   const reactionFaitePour = useRef<number>(-1);
@@ -161,6 +177,20 @@ export default function PageJeu() {
     else if (etat.phase === "finished") audio().definirAmbiance("finale");
   }, [etat?.phase]);
 
+  // ------------------------- correction : la réponse, PUIS le classement
+  useEffect(() => {
+    if (etat?.phase !== "reveal") {
+      setEtapeReveal("reponse");
+      return;
+    }
+    setEtapeReveal("reponse");
+    const bascule = setTimeout(
+      () => setEtapeReveal("classement"),
+      DUREE_AVANT_CLASSEMENT_MS,
+    );
+    return () => clearTimeout(bascule);
+  }, [etat?.phase, etat?.index]);
+
   // --------------------------------------------- la réaction après la question
   useEffect(() => {
     if (!etat) return;
@@ -169,6 +199,7 @@ export default function PageJeu() {
     const cle = `${etat.phase}-${etat.index}`;
     if (etat.phase === "question" && dernierePhase.current !== cle) {
       setSelection(etat.maSelection ?? []);
+      setEnvoye(null);
       setReaction(null);
     }
     dernierePhase.current = cle;
@@ -220,17 +251,26 @@ export default function PageJeu() {
 
   // ------------------------------------------------------ envoi d'une réponse
   async function envoyer(lettres: Letter[]) {
-    if (!session || envoi || lettres.length === 0) return;
+    if (!session || !etat || envoi || lettres.length === 0) return;
+    if (envoye?.index === etat.index) return; // déjà envoyé pour cette question
+
+    // On bascule l'écran tout de suite : c'est le serveur qui fait foi,
+    // mais l'apprenant ne doit pas attendre pour savoir que c'est parti.
+    const index = etat.index;
+    setEnvoye({ index, lettres });
+    setErreur(null);
     setEnvoi(true);
+
     const { ok, donnees } = await appelJoueur("/api/player/answer", session, {
       letters: lettres,
     });
     setEnvoi(false);
+
     if (!ok) {
-      setErreur(donnees.erreur ?? "Réponse non enregistrée.");
+      setEnvoye(null); // on rend la main pour qu'il puisse réessayer
+      setErreur(donnees.erreur ?? "Réponse non enregistrée. Réessayez.");
       return;
     }
-    setErreur(null);
     void rafraichir();
   }
 
@@ -280,25 +320,25 @@ export default function PageJeu() {
 
   // ---------- Réaction plein écran (environ 3 secondes) ----------
   if (reaction) {
-    // Fonds néon : une lueur colorée au centre sur du presque noir,
-    // dans le même esprit arcade que le reste de l'application.
-    const lueur =
-      reaction.type === "reussite"
-        ? "0, 227, 95"
-        : reaction.type === "tropLent"
-          ? "255, 196, 0"
-          : "255, 45, 85";
-
+    // Un aplat de couleur plein écran : vert si c'est juste, rouge si
+    // c'est faux, jaune si le temps est passé. Lisible d'un coup d'œil,
+    // même à bout de bras.
     const fond =
-      `radial-gradient(ellipse 85% 60% at 50% 38%, rgba(${lueur}, 0.38), transparent 68%),` +
-      ` radial-gradient(ellipse 70% 50% at 50% 110%, rgba(${lueur}, 0.18), transparent 70%),` +
-      " #05030e";
+      reaction.type === "reussite"
+        ? "var(--color-vert)"
+        : reaction.type === "tropLent"
+          ? "var(--color-jaune)"
+          : "var(--color-rouge)";
+
+    // Sur le jaune, le texte blanc ne passerait pas.
+    const encre = reaction.type === "tropLent" ? "#4a3600" : "#fff";
 
     return (
       <main
         style={{
           alignItems: "center",
           background: fond,
+          color: encre,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -321,34 +361,27 @@ export default function PageJeu() {
             fontSize: "clamp(1.8rem, 9vw, 3rem)",
             fontWeight: 800,
             margin: "1rem 0 0.6rem",
-            textShadow: `0 0 18px rgba(${lueur}, 0.9), 0 0 48px rgba(${lueur}, 0.5)`,
           }}
         >
           {reaction.phrase}
         </h1>
         {reaction.points > 0 && (
           <p
-            className="titre"
+            className="chiffre"
             style={{
-              color: `rgb(${lueur})`,
+              background: "rgba(255, 255, 255, 0.25)",
+              borderRadius: 999,
+              display: "inline-block",
               fontSize: "1.7rem",
               margin: "0.3rem 0",
-              textShadow: `0 0 16px rgba(${lueur}, 0.85)`,
+              padding: "0.3rem 1.2rem",
             }}
           >
             +{reaction.points} points
           </p>
         )}
         {reaction.serie && (
-          <p
-            className="titre"
-            style={{
-              color: "var(--color-cyan)",
-              fontSize: "1.3rem",
-              margin: 0,
-              textShadow: "0 0 16px rgba(37, 229, 255, 0.85)",
-            }}
-          >
+          <p className="titre" style={{ fontSize: "1.3rem", margin: 0 }}>
             {reaction.serie}
           </p>
         )}
@@ -367,17 +400,17 @@ export default function PageJeu() {
           <h1 style={{ fontSize: "1.9rem", margin: "0.4rem 0" }}>
             Vous êtes dans le quiz !
           </h1>
-          <p style={{ color: "var(--color-creme-doux)" }}>
+          <p style={{ color: "var(--color-encre-doux)" }}>
             Bonjour <strong>{etat.nom}</strong>. Le quiz «&nbsp;{etat.quizTitre}
             &nbsp;» va commencer.
           </p>
           <div className="carte anim-pulse" style={{ marginTop: "1.2rem" }}>
-            <div className="titre" style={{ fontSize: "2.6rem" }}>
+            <div className="chiffre" style={{ fontSize: "2.6rem" }}>
               {etat.joueurs}
             </div>
             <div>{etat.joueurs > 1 ? "joueurs présents" : "joueur présent"}</div>
           </div>
-          <p style={{ color: "var(--color-creme-doux)", marginTop: "1.2rem" }}>
+          <p style={{ color: "var(--color-encre-doux)", marginTop: "1.2rem" }}>
             Gardez cet écran ouvert 📱
           </p>
         </div>
@@ -393,17 +426,17 @@ export default function PageJeu() {
         <Confettis actif={bilan?.reussi === true} duree={2200} />
         <div style={{ textAlign: "center" }}>
           <h1 style={{ fontSize: "1.9rem", marginBottom: "0.2rem" }}>Quiz terminé !</h1>
-          <p style={{ color: "var(--color-creme-doux)", marginTop: 0 }}>{etat.nom}</p>
+          <p style={{ color: "var(--color-encre-doux)", marginTop: 0 }}>{etat.nom}</p>
 
           <div className="carte" style={{ marginTop: "1rem" }}>
-            <div className="titre" style={{ fontSize: "3rem", lineHeight: 1 }}>
+            <div className="chiffre" style={{ fontSize: "3rem", lineHeight: 1 }}>
               {etat.score}
             </div>
             <div>points</div>
-            <hr style={{ border: 0, borderTop: "1px solid var(--color-bord)", margin: "1rem 0" }} />
+            <hr style={{ border: 0, borderTop: "1px solid #d7e3d2", margin: "1rem 0" }} />
             <div style={{ display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: "0.8rem" }}>
               <div>
-                <div className="titre" style={{ fontSize: "1.6rem" }}>
+                <div className="chiffre" style={{ fontSize: "1.6rem" }}>
                   {etat.rang}
                   <span style={{ fontSize: "1rem" }}>
                     {etat.rang === 1 ? "er" : "e"}
@@ -414,13 +447,13 @@ export default function PageJeu() {
               {bilan && (
                 <>
                   <div>
-                    <div className="titre" style={{ fontSize: "1.6rem" }}>
+                    <div className="chiffre" style={{ fontSize: "1.6rem" }}>
                       {bilan.bonnesReponses}/{bilan.total}
                     </div>
                     <div style={{ fontSize: "0.8rem" }}>bonnes réponses</div>
                   </div>
                   <div>
-                    <div className="titre" style={{ fontSize: "1.6rem" }}>
+                    <div className="chiffre" style={{ fontSize: "1.6rem" }}>
                       {bilan.pourcentage.toString().replace(".", ",")} %
                     </div>
                     <div style={{ fontSize: "0.8rem" }}>de réussite</div>
@@ -464,7 +497,7 @@ export default function PageJeu() {
                     marginBottom: "0.8rem",
                   }}
                 >
-                  <div style={{ fontSize: "0.8rem", color: "var(--color-creme-doux)" }}>
+                  <div style={{ fontSize: "0.8rem", color: "var(--color-encre-doux)" }}>
                     Question {ligne.numero} · {ligne.juste ? "✅ juste" : "❌ faux"} ·{" "}
                     {ligne.points} pts
                   </div>
@@ -486,7 +519,7 @@ export default function PageJeu() {
                   {ligne.explication && (
                     <p
                       style={{
-                        background: "var(--color-prune-clair)",
+                        background: "var(--color-fond-doux)",
                         borderRadius: "0.6rem",
                         fontSize: "0.9rem",
                         margin: "0.6rem 0 0",
@@ -505,6 +538,37 @@ export default function PageJeu() {
     );
   }
 
+  // ---------- Classement plein écran (le classement n'est JAMAIS affiché
+  //            en même temps que la question : c'est son propre écran) ----
+  if (etat.phase === "reveal" && etapeReveal === "classement") {
+    const dansLeTop = (etat.top5 ?? []).some(
+      (joueur) => joueur.id === session?.playerId,
+    );
+    // Si l'apprenant n'est pas dans les premiers, on ajoute sa ligne pour
+    // qu'il se situe quand même.
+    const lignes = [
+      ...(etat.top5 ?? []),
+      ...(dansLeTop || !session
+        ? []
+        : [
+            {
+              id: session.playerId,
+              rank: etat.rang,
+              name: etat.nom,
+              score: etat.score,
+            },
+          ]),
+    ];
+
+    return (
+      <ClassementPlein
+        joueurs={lignes}
+        moiId={session?.playerId}
+        sousTitre={`Après la question ${etat.index + 1} sur ${etat.questionCount}`}
+      />
+    );
+  }
+
   // ---------- Entre deux questions : la correction affichée ----------
   if (etat.phase === "reveal") {
     const resultat = etat.resultat;
@@ -516,12 +580,12 @@ export default function PageJeu() {
           </p>
           <h1
             className="question-texte"
-            style={{ fontSize: "1.3rem", margin: "0.8rem 0" }}
+            style={{ margin: "0.8rem 0" }}
           >
             {etat.question?.text}
           </h1>
 
-          <div style={{ display: "grid", gap: "0.6rem", textAlign: "left" }}>
+          <div className="grille-reponses" style={{ textAlign: "left" }}>
             {(etat.question?.options ?? []).map((option) => (
               <BoutonReponse
                 key={option.letter}
@@ -550,13 +614,13 @@ export default function PageJeu() {
           <div className="carte" style={{ marginTop: "1rem" }}>
             <div style={{ display: "flex", justifyContent: "space-around" }}>
               <div>
-                <div className="titre" style={{ fontSize: "1.8rem" }}>
+                <div className="chiffre" style={{ fontSize: "1.8rem" }}>
                   {etat.score}
                 </div>
                 <div style={{ fontSize: "0.8rem" }}>points</div>
               </div>
               <div>
-                <div className="titre" style={{ fontSize: "1.8rem" }}>
+                <div className="chiffre" style={{ fontSize: "1.8rem" }}>
                   {etat.rang}
                   <span style={{ fontSize: "0.9rem" }}>
                     {etat.rang === 1 ? "er" : "e"}
@@ -567,7 +631,7 @@ export default function PageJeu() {
             </div>
           </div>
 
-          <p style={{ color: "var(--color-creme-doux)", marginTop: "1rem" }}>
+          <p style={{ color: "var(--color-encre-doux)", marginTop: "1rem" }}>
             Question suivante dans un instant…
           </p>
         </div>
@@ -578,7 +642,9 @@ export default function PageJeu() {
   // ---------- Question en cours ----------
   const question = etat.question;
   const multiple = question?.multiple === true;
-  const dejaRepondu = etat.aRepondu === true;
+  const envoiLocal = envoye?.index === etat.index ? envoye.lettres : null;
+  const dejaRepondu = etat.aRepondu === true || envoiLocal !== null;
+  const mesLettres = envoiLocal ?? etat.maSelection ?? [];
   const duree = question?.durationSeconds ?? 0;
 
   return (
@@ -595,16 +661,18 @@ export default function PageJeu() {
           <p className="etiquette" style={{ marginBottom: 4 }}>
             Question {etat.index + 1} / {etat.questionCount}
           </p>
-          <div style={{ fontSize: "0.85rem", color: "var(--color-creme-doux)" }}>
+          <div style={{ fontSize: "0.85rem", color: "var(--color-encre-doux)" }}>
             {etat.score} pts · {etat.rang}
             {etat.rang === 1 ? "er" : "e"} sur {etat.joueurs}
           </div>
         </div>
-        <Chrono
-          secondesRestantes={restantMs / 1000}
-          dureeTotale={duree}
-          taille={84}
-        />
+        <div className="chrono-joueur">
+          <Chrono
+            secondesRestantes={restantMs / 1000}
+            dureeTotale={duree}
+            taille={84}
+          />
+        </div>
       </div>
 
       {etat.enPause && (
@@ -615,7 +683,7 @@ export default function PageJeu() {
 
       <h1
         className="question-texte"
-        style={{ fontSize: "1.35rem", lineHeight: 1.25, margin: "0.4rem 0 1rem" }}
+        style={{ margin: "0.4rem 0 1rem" }}
       >
         {question?.text}
       </h1>
@@ -637,8 +705,8 @@ export default function PageJeu() {
           <p className="titre" style={{ fontSize: "1.2rem", margin: "0.3rem 0" }}>
             Réponse enregistrée !
           </p>
-          <p style={{ color: "var(--color-creme-doux)", margin: 0 }}>
-            Vous avez choisi {(etat.maSelection ?? []).join(", ")}. On attend les autres…
+          <p style={{ color: "var(--color-encre-doux)", margin: 0 }}>
+            Vous avez choisi {mesLettres.join(", ")}. On attend les autres…
           </p>
           <p style={{ marginTop: "0.8rem", marginBottom: 0 }}>
             <strong>{etat.ontRepondu ?? 0}</strong> / {etat.joueurs} ont répondu
@@ -646,7 +714,7 @@ export default function PageJeu() {
         </div>
       ) : (
         <>
-          <div style={{ display: "grid", gap: "0.7rem" }}>
+          <div className="grille-reponses">
             {(question?.options ?? []).map((option) => (
               <BoutonReponse
                 key={option.letter}
@@ -667,17 +735,30 @@ export default function PageJeu() {
             ))}
           </div>
 
-          {multiple && (
+          {/* Ce bouton n'existe QUE pour les questions à plusieurs bonnes
+              réponses : sans lui, le premier appui enverrait une seule
+              lettre. Il n'apparaît qu'une fois une réponse cochée, et
+              reste collé en bas de l'écran pour être sous le pouce. */}
+          {multiple && selection.length > 0 && (
             <button
               type="button"
-              className="bouton"
-              style={{ marginTop: "1rem", width: "100%" }}
-              disabled={selection.length === 0 || envoi || etat.enPause === true}
+              className="bouton anim-apparait"
+              style={{
+                bottom: "clamp(0.6rem, 2.5vh, 1.2rem)",
+                boxShadow: "0 6px 0 var(--color-vert-fonce), 0 10px 24px rgba(35, 49, 61, 0.25)",
+                left: "50%",
+                maxWidth: 520,
+                position: "sticky",
+                transform: "translateX(-50%)",
+                width: "calc(100% - 2rem)",
+                zIndex: 4,
+              }}
+              disabled={envoi || etat.enPause === true}
               onClick={() => void envoyer(selection)}
             >
               {envoi
                 ? "Envoi…"
-                : `Valider ${selection.length > 0 ? `(${selection.length})` : ""}`}
+                : `Valider mes ${selection.length} réponse${selection.length > 1 ? "s" : ""}`}
             </button>
           )}
         </>
@@ -692,17 +773,62 @@ export default function PageJeu() {
   );
 }
 
-function Cadre({ children }: { children: React.ReactNode }) {
+/** Une ligne du classement. Celle de l'apprenant est mise en évidence. */
+function LigneClassement({
+  rang,
+  nom,
+  score,
+  moi,
+}: {
+  rang: number;
+  nom: string;
+  score: number;
+  moi?: boolean;
+}) {
   return (
-    <main
+    <li
       style={{
-        margin: "0 auto",
-        maxWidth: 540,
-        minHeight: "100dvh",
-        padding: "1rem",
+        alignItems: "center",
+        background: moi ? "rgba(37, 229, 255, 0.14)" : "transparent",
+        border: moi ? "1px solid var(--color-vert)" : "1px solid transparent",
+        borderRadius: "0.4rem",
+        display: "flex",
+        gap: "0.6rem",
+        marginBottom: "0.25rem",
+        padding: "0.45rem 0.6rem",
       }}
     >
-      {children}
-    </main>
+      <span
+        className="chiffre"
+        style={{
+          color: rang <= 3 ? "var(--color-reponse-c)" : "var(--color-encre-doux)",
+          flex: "0 0 1.6rem",
+          fontSize: "1rem",
+        }}
+      >
+        {rang}
+      </span>
+      <span
+        style={{
+          flex: 1,
+          fontWeight: moi ? 700 : 400,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {nom}
+        {moi && " (vous)"}
+      </span>
+      <span style={{ fontFamily: "var(--font-texte)", fontWeight: 800 }}>
+        {score}
+      </span>
+    </li>
+  );
+}
+
+function Cadre({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="ecran-joueur">{children}</main>
   );
 }

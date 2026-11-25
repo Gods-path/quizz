@@ -111,11 +111,11 @@ function TestDuSon() {
   return (
     <main style={{ margin: "0 auto", maxWidth: 860, padding: "1.5rem 1rem 4rem" }}>
       <header style={{ marginBottom: "1.5rem" }}>
-        <Link href="/formateur" style={{ color: "var(--color-creme-doux)", fontSize: "0.9rem" }}>
+        <Link href="/formateur" style={{ color: "var(--color-encre-doux)", fontSize: "0.9rem" }}>
           ← Retour à la bibliothèque
         </Link>
         <h1 style={{ fontSize: "2rem", margin: "0.5rem 0 0" }}>Tester le son</h1>
-        <p style={{ color: "var(--color-creme-doux)", margin: "0.3rem 0 0" }}>
+        <p style={{ color: "var(--color-encre-doux)", margin: "0.3rem 0 0" }}>
           Montez le volume de l'appareil, puis appuyez sur les boutons.
           Faites-le aussi depuis un téléphone, c'est là que ça compte.
         </p>
@@ -145,7 +145,7 @@ function TestDuSon() {
           )}
         </ul>
         {dernier && (
-          <p style={{ color: "var(--color-creme-doux)", marginBottom: 0 }}>
+          <p style={{ color: "var(--color-encre-doux)", marginBottom: 0 }}>
             Dernier essai : <strong>{dernier}</strong>
           </p>
         )}
@@ -163,7 +163,7 @@ function TestDuSon() {
             <span style={{ display: "block", fontWeight: 600 }}>{essai.nom}</span>
             <span
               style={{
-                color: "var(--color-creme-doux)",
+                color: "var(--color-encre-doux)",
                 display: "block",
                 fontSize: "0.85rem",
               }}

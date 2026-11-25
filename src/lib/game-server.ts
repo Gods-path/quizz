@@ -208,13 +208,20 @@ export async function verifyPlayer(
   }
   const client = supabaseAdmin();
 
-  const { data: secret } = await client
-    .from("player_secrets")
-    .select("token_hash")
-    .eq("player_id", playerId)
-    .maybeSingle();
+  // Les deux lectures partent EN MÊME TEMPS. Enchaînées, elles coûtaient
+  // deux allers-retours vers la base ; depuis un téléphone en 3G et avec
+  // une base en Europe, chaque aller-retour se paie cher.
+  const [secretResultat, playerResultat, expected] = await Promise.all([
+    client
+      .from("player_secrets")
+      .select("token_hash")
+      .eq("player_id", playerId)
+      .maybeSingle(),
+    client.from("players").select("*").eq("id", playerId).maybeSingle(),
+    sha256Hex(token),
+  ]);
 
-  const expected = await sha256Hex(token);
+  const secret = secretResultat.data;
   if (!secret || secret.token_hash !== expected) {
     throw new GameError(
       "Session introuvable. Entrez de nouveau votre nom et le code du quiz.",
@@ -222,12 +229,7 @@ export async function verifyPlayer(
     );
   }
 
-  const { data: player } = await client
-    .from("players")
-    .select("*")
-    .eq("id", playerId)
-    .maybeSingle();
-
+  const player = playerResultat.data;
   if (!player) throw new GameError("Joueur introuvable.", 404);
   const row = player as PlayerRow;
   if (row.removed) {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { BoutonReponse } from "@/components/BoutonReponse";
 import { Chrono } from "@/components/Chrono";
+import { ClassementPlein } from "@/components/ClassementPlein";
 import { Confettis } from "@/components/Confettis";
 import { GardeFormateur } from "@/components/GardeFormateur";
 import { Pastille } from "@/components/Pastille";
@@ -60,7 +61,14 @@ interface EtatPartie {
   sansReponse?: number;
 }
 
-const PAUSE_CORRECTION_MS = 5000;
+/**
+ * La correction se joue en deux temps sur l'écran projeté :
+ *   1. la bonne réponse et la répartition des réponses ;
+ *   2. le classement en plein écran, barres animées.
+ * Le formateur peut couper court à tout moment avec « Question suivante ».
+ */
+const DUREE_CORRECTION_MS = 4500;
+const DUREE_CLASSEMENT_MS = 5000;
 
 export default function PagePartie({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -76,6 +84,10 @@ function EcranPartie({ gameId }: { gameId: string }) {
   const [erreur, setErreur] = useState<string | null>(null);
   const [restantMs, setRestantMs] = useState(0);
   const [arrivee, setArrivee] = useState<string | null>(null);
+  /** Pendant la correction : d'abord la réponse, puis le classement. */
+  const [etapeCorrection, setEtapeCorrection] = useState<"reponse" | "classement">(
+    "reponse",
+  );
 
   const recuA = useRef(0);
   const connus = useRef<Set<string>>(new Set());
@@ -217,10 +229,26 @@ function EcranPartie({ gameId }: { gameId: string }) {
   avancerRef.current = avancer;
 
   useEffect(() => {
-    if (phaseActuelle !== "reveal") return;
+    if (phaseActuelle !== "reveal") {
+      setEtapeCorrection("reponse");
+      return;
+    }
     revelationA.current = Date.now();
-    const minuteur = setTimeout(() => void avancerRef.current(), PAUSE_CORRECTION_MS);
-    return () => clearTimeout(minuteur);
+    setEtapeCorrection("reponse");
+
+    const versClassement = setTimeout(
+      () => setEtapeCorrection("classement"),
+      DUREE_CORRECTION_MS,
+    );
+    const versSuite = setTimeout(
+      () => void avancerRef.current(),
+      DUREE_CORRECTION_MS + DUREE_CLASSEMENT_MS,
+    );
+
+    return () => {
+      clearTimeout(versClassement);
+      clearTimeout(versSuite);
+    };
   }, [phaseActuelle, indexActuel]);
 
   async function basculerPause() {
@@ -305,7 +333,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
             <h1 style={{ fontSize: "clamp(1.4rem, 3vw, 2.2rem)", margin: "0.8rem 0 0.2rem" }}>
               Rejoignez le quiz
             </h1>
-            <p style={{ color: "var(--color-creme-doux)", margin: 0 }}>
+            <p style={{ color: "var(--color-encre-doux)", margin: 0 }}>
               Ouvrez <strong>{adresse.replace(/^https?:\/\//, "")}</strong> sur votre téléphone
             </p>
           </div>
@@ -323,7 +351,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
             <div style={{ textAlign: "center" }}>
               <div
                 style={{
-                  color: "var(--color-creme-doux)",
+                  color: "var(--color-encre-doux)",
                   fontSize: "1rem",
                   letterSpacing: "0.2em",
                   textTransform: "uppercase",
@@ -331,7 +359,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
               >
                 Code du quiz
               </div>
-              <div className="code-partie" style={{ color: "var(--color-accent-clair)" }}>
+              <div className="code-partie" style={{ color: "var(--color-vert-clair)" }}>
                 {partie.code}
               </div>
             </div>
@@ -380,7 +408,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
             </div>
 
             {etat.joueurs.length === 0 ? (
-              <p style={{ color: "var(--color-creme-doux)", textAlign: "center" }}>
+              <p style={{ color: "var(--color-encre-doux)", textAlign: "center" }}>
                 En attente du premier apprenant…
               </p>
             ) : (
@@ -403,7 +431,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
             )}
           </section>
 
-          <p style={{ color: "var(--color-creme-doux)", fontSize: "0.85rem", marginTop: "1rem", textAlign: "center" }}>
+          <p style={{ color: "var(--color-encre-doux)", fontSize: "0.85rem", marginTop: "1rem", textAlign: "center" }}>
             Gardez cet écran ouvert pendant tout le quiz : c'est lui qui fait avancer les questions.
           </p>
         </div>
@@ -460,7 +488,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
           <section className="carte" style={{ overflowX: "auto" }}>
             <table style={{ borderCollapse: "collapse", minWidth: 640, width: "100%" }}>
               <thead>
-                <tr style={{ textAlign: "left", color: "var(--color-creme-doux)" }}>
+                <tr style={{ textAlign: "left", color: "var(--color-encre-doux)" }}>
                   <th style={{ padding: "0.6rem" }}>Rang</th>
                   <th style={{ padding: "0.6rem" }}>Nom</th>
                   <th style={{ padding: "0.6rem" }}>Points</th>
@@ -474,12 +502,12 @@ function EcranPartie({ gameId }: { gameId: string }) {
                   const pourcentage = pourcentageDe(joueur);
                   const reussi = pourcentage >= partie.pass_threshold;
                   return (
-                    <tr key={joueur.id} style={{ borderTop: "1px solid var(--color-bord)" }}>
-                      <td className="titre" style={{ padding: "0.6rem", fontSize: "1.1rem" }}>
+                    <tr key={joueur.id} style={{ borderTop: "1px solid #d7e3d2" }}>
+                      <td className="chiffre" style={{ padding: "0.6rem", fontSize: "1.1rem" }}>
                         {joueur.rank}
                       </td>
                       <td style={{ padding: "0.6rem" }}>{joueur.name}</td>
-                      <td className="titre" style={{ padding: "0.6rem" }}>
+                      <td className="chiffre" style={{ padding: "0.6rem" }}>
                         {joueur.score}
                       </td>
                       <td style={{ padding: "0.6rem" }}>
@@ -513,6 +541,53 @@ function EcranPartie({ gameId }: { gameId: string }) {
     );
   }
 
+  // ============================ CLASSEMENT PLEIN ÉCRAN, ENTRE DEUX QUESTIONS
+  // C'est le moment où chacun voit où il en est. Il s'affiche après la
+  // bonne réponse, puis la question suivante arrive toute seule.
+  if (partie.phase === "reveal" && etapeCorrection === "classement") {
+    const derniere = partie.current_index + 1 >= partie.question_count;
+    return (
+      <main className="ecran-projete">
+        <ClassementPlein
+          joueurs={classement}
+          titre={derniere ? "Classement final" : "Classement"}
+          sousTitre={`Après la question ${partie.current_index + 1} sur ${partie.question_count}`}
+        />
+
+        {/* Les commandes restent accessibles : le formateur n'est jamais
+            obligé d'attendre la fin de l'animation. */}
+        <div
+          style={{
+            bottom: "clamp(0.8rem, 3vh, 2rem)",
+            display: "flex",
+            gap: "0.7rem",
+            justifyContent: "center",
+            left: 0,
+            position: "fixed",
+            right: 0,
+            zIndex: 5,
+          }}
+        >
+          <button
+            type="button"
+            className="bouton"
+            style={{ background: "#fff", boxShadow: "0 6px 0 rgba(0,0,0,0.18)", color: "var(--color-vert-fonce)" }}
+            onClick={() => void avancer(true)}
+          >
+            {derniere ? "Voir les résultats" : "Question suivante →"}
+          </button>
+          <button
+            type="button"
+            className="bouton-secondaire"
+            onClick={() => void terminer()}
+          >
+            Terminer le quiz
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   // ====================================================== QUESTION / CORRECTION
   const corrige = partie.phase === "reveal";
   const total = question?.total ?? partie.question_count;
@@ -541,7 +616,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
               {question?.domaine && (
                 <span
                   style={{
-                    color: "var(--color-creme-doux)",
+                    color: "var(--color-encre-doux)",
                     fontFamily: "var(--font-texte)",
                     fontSize: "0.9rem",
                     marginLeft: "1rem",
@@ -565,10 +640,10 @@ function EcranPartie({ gameId }: { gameId: string }) {
           )}
 
           <div style={{ textAlign: "center", minWidth: 150 }}>
-            <div className="titre" style={{ fontSize: "clamp(1.4rem, 2.6vw, 2.4rem)" }}>
+            <div className="chiffre" style={{ fontSize: "clamp(1.4rem, 2.6vw, 2.4rem)" }}>
               {partie.answered_count} / {partie.player_count}
             </div>
-            <div style={{ color: "var(--color-creme-doux)", fontSize: "0.9rem" }}>
+            <div style={{ color: "var(--color-encre-doux)", fontSize: "0.9rem" }}>
               ont répondu
             </div>
           </div>
@@ -627,7 +702,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
                 {corrige && part && (
                   <div
                     style={{
-                      background: "var(--color-prune-clair)",
+                      background: "var(--color-fond-doux)",
                       borderRadius: 999,
                       height: 14,
                       marginTop: 6,
@@ -638,7 +713,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
                       style={{
                         background: question?.correctLetters?.includes(option.letter)
                           ? "var(--color-succes)"
-                          : "var(--color-bord)",
+                          : "#d7e3d2",
                         height: "100%",
                         transition: "width 0.5s ease",
                         width: `${(part.count / maxReponses) * 100}%`,
@@ -651,7 +726,9 @@ function EcranPartie({ gameId }: { gameId: string }) {
           })}
         </div>
 
-        {/* Correction : explication et classement */}
+        {/* Correction : la bonne réponse et l'explication.
+            Le classement a son PROPRE écran, juste après : il ne doit
+            jamais être affiché en même temps que la question. */}
         {corrige && (
           <div
             style={{
@@ -667,7 +744,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
                 {(etat.bonnesReponsesCount ?? 0) > 1 ? "s" : ""} réponse
                 {(etat.bonnesReponsesCount ?? 0) > 1 ? "s" : ""}
                 {(etat.sansReponse ?? 0) > 0 && (
-                  <span style={{ color: "var(--color-creme-doux)", fontSize: "0.9rem" }}>
+                  <span style={{ color: "var(--color-encre-doux)", fontSize: "0.9rem" }}>
                     {" "}
                     · {etat.sansReponse} sans réponse
                   </span>
@@ -678,17 +755,6 @@ function EcranPartie({ gameId }: { gameId: string }) {
               )}
             </section>
 
-            <section className="carte">
-              <h2 style={{ fontSize: "1.2rem", marginTop: 0 }}>Classement</h2>
-              <ol style={{ margin: 0, paddingLeft: "1.4rem" }}>
-                {classement.slice(0, 5).map((joueur) => (
-                  <li key={joueur.id} style={{ fontSize: "1.1rem", marginBottom: "0.3rem" }}>
-                    <strong>{joueur.name}</strong> — {joueur.score} pts
-                    {joueur.streak >= 3 && " 🔥"}
-                  </li>
-                ))}
-              </ol>
-            </section>
           </div>
         )}
 

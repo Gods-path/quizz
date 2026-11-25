@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-const COULEURS = ["#e2724f", "#efb008", "#2fa84f", "#2f6ddf", "#e03e3e", "#fdf4ec"];
+const COULEURS = ["#e8453c", "#ffc72c", "#3aa757", "#3b82c4", "#8e44ad", "#ffffff"];
 
 /**
  * Confettis dessinés sur un canvas : léger, sans bibliothèque.

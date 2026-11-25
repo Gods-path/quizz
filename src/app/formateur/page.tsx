@@ -182,7 +182,7 @@ function Bibliotheque() {
       >
         <div>
           <h1 style={{ fontSize: "2rem", margin: 0 }}>Espace formateur</h1>
-          <p style={{ color: "var(--color-creme-doux)", margin: "0.3rem 0 0" }}>
+          <p style={{ color: "var(--color-encre-doux)", margin: "0.3rem 0 0" }}>
             Importez un quiz, puis lancez une partie.
           </p>
         </div>
@@ -254,7 +254,7 @@ function Bibliotheque() {
             />
             <span>
               Mode moqueur{" "}
-              <span style={{ color: "var(--color-creme-doux)", fontSize: "0.85rem" }}>
+              <span style={{ color: "var(--color-encre-doux)", fontSize: "0.85rem" }}>
                 ({reglages.moqueur ? "« T'es nul, t'as raté ! »" : "« Pas cette fois, courage ! »"})
               </span>
             </span>
@@ -288,7 +288,7 @@ function Bibliotheque() {
             >
               <div style={{ minWidth: 220, flex: 1 }}>
                 <h3 style={{ fontSize: "1.25rem", margin: "0 0 0.4rem" }}>{item.title}</h3>
-                <p style={{ color: "var(--color-creme-doux)", margin: 0 }}>
+                <p style={{ color: "var(--color-encre-doux)", margin: 0 }}>
                   {item.question_count} question{item.question_count > 1 ? "s" : ""} ·{" "}
                   {item.total_duration_minutes} minutes
                 </p>
@@ -340,7 +340,7 @@ function Bibliotheque() {
               <div style={{ marginTop: "1.2rem" }}>
                 <table style={{ borderCollapse: "collapse", fontSize: "0.9rem", width: "100%" }}>
                   <thead>
-                    <tr style={{ textAlign: "left", color: "var(--color-creme-doux)" }}>
+                    <tr style={{ textAlign: "left", color: "var(--color-encre-doux)" }}>
                       <th style={{ padding: "0.4rem" }}>#</th>
                       <th style={{ padding: "0.4rem" }}>Question</th>
                       <th style={{ padding: "0.4rem" }}>Bonne(s)</th>
@@ -349,13 +349,13 @@ function Bibliotheque() {
                   </thead>
                   <tbody>
                     {questions.liste.map((question) => (
-                      <tr key={question.id} style={{ borderTop: "1px solid var(--color-bord)" }}>
+                      <tr key={question.id} style={{ borderTop: "1px solid #d7e3d2" }}>
                         <td style={{ padding: "0.5rem 0.4rem", verticalAlign: "top" }}>
                           {question.position + 1}
                         </td>
                         <td style={{ padding: "0.5rem 0.4rem" }}>
                           {question.text}
-                          <div style={{ color: "var(--color-creme-doux)", fontSize: "0.82rem", marginTop: 4 }}>
+                          <div style={{ color: "var(--color-encre-doux)", fontSize: "0.82rem", marginTop: 4 }}>
                             {question.options
                               .map((option) => `${option.letter}. ${option.text}`)
                               .join(" · ")}

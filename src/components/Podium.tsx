@@ -10,7 +10,7 @@ export interface Place {
 
 const HAUTEURS = [170, 120, 90];
 const MEDAILLES = ["🥇", "🥈", "🥉"];
-const COULEURS = ["#ffc400", "#9ad8ff", "#ff8a3d"];
+const COULEURS = ["#ffc72c", "#9bb3c4", "#e0893c"];
 
 /** Podium animé des trois premiers : 2e à gauche, 1er au centre. */
 export function Podium({ places }: { places: Place[] }) {
@@ -40,7 +40,7 @@ export function Podium({ places }: { places: Place[] }) {
             >
               <Pastille nom={place.name} taille={72} anime={false} />
               <div
-                className="titre"
+                className="chiffre"
                 style={{ fontSize: "clamp(1.1rem, 2vw, 1.8rem)", marginTop: 4 }}
               >
                 {place.score} pts
@@ -50,13 +50,10 @@ export function Podium({ places }: { places: Place[] }) {
               className="anim-monte"
               style={{
                 alignItems: "flex-start",
-                // Hex sur 8 chiffres plutôt que color-mix() : même rendu,
-                // compris par tous les navigateurs.
-                background: `linear-gradient(180deg, ${COULEURS[index]} 0%, ${COULEURS[index]}33 100%)`,
-                border: `2px solid ${COULEURS[index]}`,
-                borderBottom: "none",
-                borderRadius: "0.4rem 0.4rem 0 0",
-                boxShadow: `0 0 28px ${COULEURS[index]}99`,
+                // Un aplat et une ombre plate : le style de l'affiche.
+                background: COULEURS[index],
+                borderRadius: "1rem 1rem 0 0",
+                boxShadow: "0 6px 0 rgba(35, 49, 61, 0.15)",
                 display: "flex",
                 fontSize: "clamp(1.6rem, 3vw, 2.6rem)",
                 height: HAUTEURS[index],

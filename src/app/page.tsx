@@ -105,7 +105,7 @@ export default function PageEntree() {
           🎯
         </div>
         <h1 style={{ fontSize: "2.1rem", margin: "0.3rem 0" }}>Quiz en direct</h1>
-        <p style={{ color: "var(--color-creme-doux)", margin: 0 }}>
+        <p style={{ color: "var(--color-encre-doux)", margin: 0 }}>
           Entrez votre nom et le code affiché par le formateur.
         </p>
       </div>
@@ -158,7 +158,7 @@ export default function PageEntree() {
         />
         <p
           style={{
-            color: "var(--color-creme-doux)",
+            color: "var(--color-encre-doux)",
             fontSize: "0.8rem",
             margin: "0.3rem 0 1.1rem",
           }}
@@ -206,7 +206,7 @@ export default function PageEntree() {
 
       <p
         style={{
-          color: "var(--color-creme-doux)",
+          color: "var(--color-encre-doux)",
           fontSize: "0.78rem",
           marginTop: "1.5rem",
           textAlign: "center",
@@ -222,7 +222,7 @@ export default function PageEntree() {
         <Link
           href="/formateur"
           style={{
-            color: "var(--color-creme-doux)",
+            color: "var(--color-encre-doux)",
             fontSize: "0.78rem",
             opacity: 0.75,
             textDecoration: "none",

@@ -24,7 +24,7 @@ export function Chrono({
       ? "var(--color-reponse-a)"
       : secondes <= 10
         ? "var(--color-reponse-c)"
-        : "var(--color-cyan)";
+        : "var(--color-vert)";
 
   return (
     <div

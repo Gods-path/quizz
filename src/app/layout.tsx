@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Orbitron } from "next/font/google";
+import { Fredoka, Inter } from "next/font/google";
 import "./globals.css";
 
 /**
@@ -7,11 +7,10 @@ import "./globals.css";
  * télécharge au moment de la construction) : rien n'est demandé à
  * Google depuis le téléphone de l'apprenant, ce qui aide en 3G.
  */
-// Orbitron pour tout ce qui doit claquer : scores, chronos, code de partie.
-// (Le style « arcade néon » demandé remplace l'ancienne police Fredoka.)
-const orbitron = Orbitron({
+// Fredoka : ronde et épaisse, c'est la typographie des affiches de quiz.
+const fredoka = Fredoka({
   subsets: ["latin"],
-  weight: ["500", "700", "900"],
+  weight: ["500", "600", "700"],
   variable: "--police-titre",
   display: "swap",
 });
@@ -29,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#241228",
+  themeColor: "#3aa757",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -40,7 +39,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr">
-      <body className={`${orbitron.variable} ${inter.variable}`}>{children}</body>
+      <body className={`${fredoka.variable} ${inter.variable}`}>{children}</body>
     </html>
   );
 }

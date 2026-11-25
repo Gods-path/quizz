@@ -73,7 +73,7 @@ function Historique() {
   return (
     <main style={{ margin: "0 auto", maxWidth: 1000, padding: "1.5rem 1rem 4rem" }}>
       <header style={{ marginBottom: "1.5rem" }}>
-        <Link href="/formateur" style={{ color: "var(--color-creme-doux)", fontSize: "0.9rem" }}>
+        <Link href="/formateur" style={{ color: "var(--color-encre-doux)", fontSize: "0.9rem" }}>
           ← Retour à la bibliothèque
         </Link>
         <h1 style={{ fontSize: "2rem", margin: "0.5rem 0 0" }}>Historique des parties</h1>
@@ -108,7 +108,7 @@ function Historique() {
           >
             <div style={{ minWidth: 240 }}>
               <h2 style={{ fontSize: "1.1rem", margin: "0 0 0.3rem" }}>{partie.quiz_title}</h2>
-              <p style={{ color: "var(--color-creme-doux)", fontSize: "0.88rem", margin: 0 }}>
+              <p style={{ color: "var(--color-encre-doux)", fontSize: "0.88rem", margin: 0 }}>
                 {new Date(partie.created_at).toLocaleString("fr-FR", {
                   dateStyle: "long",
                   timeStyle: "short",

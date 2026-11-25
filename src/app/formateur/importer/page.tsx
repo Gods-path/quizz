@@ -173,12 +173,12 @@ function Importateur() {
       <header style={{ marginBottom: "1.5rem" }}>
         <Link
           href="/formateur"
-          style={{ color: "var(--color-creme-doux)", fontSize: "0.9rem" }}
+          style={{ color: "var(--color-encre-doux)", fontSize: "0.9rem" }}
         >
           ← Retour à la bibliothèque
         </Link>
         <h1 style={{ fontSize: "2rem", margin: "0.5rem 0 0" }}>Importer un quiz</h1>
-        <p style={{ color: "var(--color-creme-doux)", margin: "0.3rem 0 0" }}>
+        <p style={{ color: "var(--color-encre-doux)", margin: "0.3rem 0 0" }}>
           N'importe quel sujet : un fichier CSV, un titre, une durée totale.
         </p>
       </header>
@@ -241,7 +241,7 @@ function Importateur() {
                 Utiliser les durées du fichier
                 <span
                   style={{
-                    color: "var(--color-creme-doux)",
+                    color: "var(--color-encre-doux)",
                     display: "block",
                     fontSize: "0.82rem",
                   }}
@@ -264,7 +264,7 @@ function Importateur() {
               onChange={(event) => void choisirFichier(event)}
             />
             {nomFichier && (
-              <p style={{ color: "var(--color-creme-doux)", fontSize: "0.85rem", margin: "0.4rem 0 0" }}>
+              <p style={{ color: "var(--color-encre-doux)", fontSize: "0.85rem", margin: "0.4rem 0 0" }}>
                 Fichier chargé : {nomFichier}
               </p>
             )}
@@ -311,7 +311,7 @@ function Importateur() {
               <h2 style={{ fontSize: "1.2rem", margin: 0 }}>
                 Aperçu : {apercu.questions.length} questions
               </h2>
-              <p style={{ color: "var(--color-creme-doux)", margin: "0.3rem 0 0" }}>
+              <p style={{ color: "var(--color-encre-doux)", margin: "0.3rem 0 0" }}>
                 {apercu.heavyCount} question{apercu.heavyCount > 1 ? "s" : ""} comptée
                 {apercu.heavyCount > 1 ? "s" : ""} double (longue ou à plusieurs bonnes réponses).
               </p>
@@ -352,7 +352,7 @@ function Importateur() {
                   <div style={{ flex: 1, minWidth: 240 }}>
                     <div
                       style={{
-                        color: "var(--color-creme-doux)",
+                        color: "var(--color-encre-doux)",
                         fontSize: "0.78rem",
                         marginBottom: "0.3rem",
                       }}
@@ -362,7 +362,7 @@ function Importateur() {
                       {question.domaine && ` · ${question.domaine}`}
                     </div>
                     <p style={{ fontWeight: 600, margin: "0 0 0.4rem" }}>{question.text}</p>
-                    <div style={{ fontSize: "0.85rem", color: "var(--color-creme-doux)" }}>
+                    <div style={{ fontSize: "0.85rem", color: "var(--color-encre-doux)" }}>
                       {question.options.map((option) => (
                         <span key={option.letter} style={{ marginRight: "0.9rem" }}>
                           <strong
@@ -398,7 +398,7 @@ function Importateur() {
                         void changerDuree(question.position, Number(event.target.value) || 15)
                       }
                       style={{
-                        borderColor: question.locked ? "var(--color-accent)" : undefined,
+                        borderColor: question.locked ? "var(--color-vert)" : undefined,
                         textAlign: "center",
                         width: 110,
                       }}
@@ -410,7 +410,7 @@ function Importateur() {
                         style={{
                           background: "none",
                           border: "none",
-                          color: "var(--color-accent-clair)",
+                          color: "var(--color-vert-clair)",
                           cursor: "pointer",
                           fontSize: "0.78rem",
                           marginTop: "0.3rem",
