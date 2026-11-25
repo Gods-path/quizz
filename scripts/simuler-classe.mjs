@@ -124,32 +124,25 @@ async function main() {
   messagesJoueurs = 0;
   const debutReponses = Date.now();
 
-  // Par vagues de 5, et non les 20 d'un coup.
+  // Vraiment tous en même temps : c'est le pire cas, et c'est celui d'une
+  // classe à qui l'on vient de projeter la question.
   //
-  // Ce n'est pas pour ménager l'application : c'est pour ménager la liaison
-  // internet de la machine qui lance le script. Vingt connexions TLS
-  // simultanées vers l'Europe suffisent à saturer une box ou un partage de
-  // connexion mobile, et l'on mesure alors le réseau du testeur au lieu de
-  // mesurer le quiz. En vrai, les téléphones passent par Vercel, chacun par
-  // sa propre connexion : la situation est bien moins exigeante que celle-ci.
-  const VAGUE = 5;
-  const reponses = [];
-  for (let debut = 0; debut < joueurs.length; debut += VAGUE) {
-    const vague = joueurs.slice(debut, debut + VAGUE);
-    reponses.push(
-      ...(await Promise.all(
-        vague.map((joueur) =>
-          fetch(`${BASE}/api/player/answer`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ playerId: joueur.playerId, token: joueur.token, letters: ["A"] }),
-          })
-            .then(async (reponse) => ({ ok: reponse.ok, corps: await reponse.json().catch(() => ({})) }))
-            .catch((erreur) => ({ ok: false, corps: { erreur: erreur.message } })),
-        ),
-      )),
-    );
-  }
+  // Le `catch` par réponse compte autant que le reste : si la liaison
+  // internet de la machine qui lance le script lâche, on doit le voir
+  // écrit noir sur blanc plutôt que de croire le quiz en cause. Mesuré :
+  // 20 réponses simultanées passent en 10 s sur une liaison saine, et
+  // échouent toutes sur une liaison coupée — ce qui ne dit rien du quiz.
+  const reponses = await Promise.all(
+    joueurs.map((joueur) =>
+      fetch(`${BASE}/api/player/answer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: joueur.playerId, token: joueur.token, letters: ["A"] }),
+      })
+        .then(async (reponse) => ({ ok: reponse.ok, corps: await reponse.json().catch(() => ({})) }))
+        .catch((erreur) => ({ ok: false, corps: { erreur: `réseau : ${erreur.message}` } })),
+    ),
+  );
   const dureeReponses = Date.now() - debutReponses;
   const acceptees = reponses.filter((reponse) => reponse.ok).length;
   verifier(`les ${N} réponses simultanées sont acceptées`, acceptees === N,
