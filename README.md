@@ -253,11 +253,39 @@ environnements cochés (Production, Preview, Development).
 5. Vercel vous donne une adresse du type `https://quizz-xyz.vercel.app`.
    **C'est cette adresse que vous donnez à vos apprenants.**
 
-### 7.4 Après coup
+### 7.4 La région des fonctions : à ne pas négliger
+
+Le fichier `vercel.json` contient une seule ligne utile :
+
+```json
+{ "regions": ["dub1"] }
+```
+
+`dub1`, c'est Dublin — **le même endroit que votre base Supabase** si vous
+avez suivi la section 2 (West EU / Ireland). C'est volontaire et c'est
+important.
+
+Vercel choisit sinon une région par défaut qui n'a rien à voir avec celle de
+votre base. Sur ce projet, les fonctions tournaient à **São Paulo** pendant
+que la base était en Irlande : chaque lecture traversait l'Atlantique deux
+fois. Mesuré : la correction d'une question prenait **3,2 s depuis le Brésil**
+contre **1,9 s depuis un ordinateur à Douala**. Le serveur était plus lent
+que l'ordinateur du formateur, ce qui n'a aucun sens — sauf quand la base est
+à 10 000 km.
+
+Si un jour vous changez la région de votre base Supabase, changez aussi cette
+ligne. Les codes utiles : `dub1` Dublin, `cdg1` Paris, `fra1` Francfort,
+`iad1` Washington, `gru1` São Paulo.
+
+### 7.5 Après coup
 
 - Vous modifiez le code ? `git push` suffit : Vercel redéploie tout seul.
 - Vous changez une variable d'environnement ? Il faut **redéployer** :
   onglet **Deployments** → `...` → **Redeploy**.
+- **Ne partagez que l'adresse principale** (`mon-quiz.vercel.app`) à vos
+  apprenants. Les adresses de déploiement, du genre
+  `mon-quiz-7fnzcv1uj-equipe.vercel.app`, sont protégées par Vercel : vos
+  apprenants tomberaient sur une demande de connexion.
 
 ---
 
