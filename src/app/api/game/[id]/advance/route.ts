@@ -8,6 +8,14 @@ import {
   startQuestion,
 } from "@/lib/game-server";
 
+/**
+ * Vercel coupe une fonction au bout de 10 secondes par défaut. La clôture
+ * d'une question écrit le score de toute la classe : avec une grande classe
+ * et une base de données située en Europe, 10 secondes peuvent ne pas
+ * suffire, et la partie resterait bloquée. On se laisse de la marge.
+ */
+export const maxDuration = 30;
+
 interface Params {
   params: Promise<{ id: string }>;
 }

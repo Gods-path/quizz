@@ -137,7 +137,7 @@ function TestDuSon() {
             {diag && diag.voixDisponibles > 0 && ` — ${diag.voixDisponibles} disponible(s)`}
           </li>
           {diag && !diag.voix && (
-            <li style={{ color: "#ffc9c0" }}>
+            <li style={{ color: "var(--color-echec)" }}>
               Sans voix française installée, les phrases s'affichent et les
               bruitages jouent, mais rien n'est prononcé. C'est prévu, et
               l'application fonctionne quand même.

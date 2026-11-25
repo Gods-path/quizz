@@ -221,6 +221,25 @@ export async function verifyPlayer(
     sha256Hex(token),
   ]);
 
+  // ATTENTION : il faut distinguer « la base a répondu, cette place n'existe
+  // pas » de « la base n'a pas répondu ». Confondre les deux a une
+  // conséquence brutale : le téléphone reçoit un 401, efface la session de
+  // l'apprenant, et celui-ci ne peut PLUS revenir — son nom est déjà pris
+  // dans la partie. Une seconde de hoquet de la base et il est exclu du
+  // quiz pour de bon. Un 503 dit « réessaie », et la place est conservée.
+  if (secretResultat.error) {
+    throw new GameError(
+      "La base de données n'a pas répondu. On réessaie dans un instant.",
+      503,
+    );
+  }
+  if (playerResultat.error) {
+    throw new GameError(
+      "La base de données n'a pas répondu. On réessaie dans un instant.",
+      503,
+    );
+  }
+
   const secret = secretResultat.data;
   if (!secret || secret.token_hash !== expected) {
     throw new GameError(
@@ -350,11 +369,23 @@ export async function closeQuestion(game: GameRow): Promise<GameRow> {
     const { error } = await client.from("players").upsert(updatedPlayers);
     if (error) throw new GameError(error.message, 500);
   }
+
+  // Un bonus de série ne vaut que 0 ou 100 : on regroupe donc toutes les
+  // réponses par valeur, ce qui fait DEUX requêtes au maximum. Une par
+  // apprenant, comme avant, c'était 30 allers-retours vers l'Europe sur
+  // une classe de 30 — assez pour dépasser la limite de temps de Vercel.
+  const parValeur = new Map<number, string[]>();
   for (const update of bonusUpdates) {
-    await client
+    const liste = parValeur.get(update.streak_bonus);
+    if (liste) liste.push(update.id);
+    else parValeur.set(update.streak_bonus, [update.id]);
+  }
+  for (const [valeur, ids] of parValeur) {
+    const { error } = await client
       .from("answers")
-      .update({ streak_bonus: update.streak_bonus })
-      .eq("id", update.id);
+      .update({ streak_bonus: valeur })
+      .in("id", ids);
+    if (error) throw new GameError(error.message, 500);
   }
 
   return locked as GameRow;

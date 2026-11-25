@@ -9,7 +9,7 @@ import { Confettis } from "@/components/Confettis";
 import { audio } from "@/lib/audio/engine";
 import { EMOJIS, phraseAuHasard, pourLaVoix, type Reaction } from "@/lib/audio/phrases";
 import { appelJoueur, effacerSession, lireSession, type SessionJoueur } from "@/lib/session";
-import { useRealtimeGame } from "@/lib/useRealtimeGame";
+import { useRealtimeGame, type LignePartie } from "@/lib/useRealtimeGame";
 import type { GamePhase, Letter, QuestionOption } from "@/lib/types";
 
 interface EtatJoueur {
@@ -154,7 +154,26 @@ export default function PageJeu() {
     if (session) void rafraichir();
   }, [session, rafraichir]);
 
-  useRealtimeGame(session?.gameId ?? null, rafraichir, 4000);
+  // « 12 sur 20 ont répondu » change à chaque réponse de la classe. Ce
+  // compteur arrive déjà dans le message temps réel : on le pose directement
+  // dans l'état, sans redemander quoi que ce soit au serveur. Avec 30
+  // téléphones, c'est la différence entre un quiz fluide et un quiz figé.
+  const majCompteurs = useCallback((ligne: LignePartie) => {
+    setEtat((precedent) =>
+      precedent === null || precedent.ontRepondu === ligne.answered_count
+        ? precedent
+        : { ...precedent, ontRepondu: ligne.answered_count },
+    );
+  }, []);
+
+  useRealtimeGame(session?.gameId ?? null, rafraichir, {
+    secoursMs: 4000,
+    surCompteurs: majCompteurs,
+    // Le téléphone n'affiche jamais les scores des autres pendant le jeu :
+    // s'abonner à la table des joueurs lui ferait recevoir une trentaine de
+    // messages par question sans aucun usage.
+    ecouterJoueurs: false,
+  });
 
   // ------------------------------------------------- compte à rebours local
   useEffect(() => {

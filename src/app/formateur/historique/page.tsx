@@ -37,7 +37,7 @@ function Historique() {
 
   const charger = useCallback(async () => {
     try {
-      const reponse = await fetch("/api/game");
+      const reponse = await fetch("/api/game", { cache: "no-store" });
       const donnees = await reponse.json();
       if (!reponse.ok) {
         setErreur(donnees.erreur ?? "Impossible de charger l'historique.");
@@ -140,7 +140,14 @@ function Historique() {
               <button
                 type="button"
                 className="bouton-secondaire"
-                style={{ borderColor: "var(--color-echec)", color: "#ffc9c0" }}
+                // Sur fond clair, il faut du rouge franc : la teinte pâle
+                // héritée de l'ancien thème sombre rendait ce bouton
+                // quasiment invisible sur la carte blanche.
+                style={{
+                  background: "#fff",
+                  borderColor: "var(--color-echec)",
+                  color: "var(--color-echec)",
+                }}
                 onClick={() => void supprimer(partie)}
               >
                 Supprimer

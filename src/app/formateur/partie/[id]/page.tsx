@@ -12,7 +12,7 @@ import { Logo } from "@/components/Logo";
 import { Pastille } from "@/components/Pastille";
 import { Podium } from "@/components/Podium";
 import { audio } from "@/lib/audio/engine";
-import { useRealtimeGame } from "@/lib/useRealtimeGame";
+import { useRealtimeGame, type LignePartie } from "@/lib/useRealtimeGame";
 import type { GamePhase, Letter, QuestionOption } from "@/lib/types";
 
 interface Partie {
@@ -104,7 +104,7 @@ function EcranPartie({ gameId }: { gameId: string }) {
   // ------------------------------------------------------------- lecture
   const rafraichir = useCallback(async () => {
     try {
-      const reponse = await fetch(`/api/game/${gameId}/state`);
+      const reponse = await fetch(`/api/game/${gameId}/state`, { cache: "no-store" });
       const donnees = await reponse.json();
       if (!reponse.ok) {
         setErreur(donnees.erreur ?? "Impossible de lire la partie.");
@@ -126,7 +126,32 @@ function EcranPartie({ gameId }: { gameId: string }) {
     audio().armerPremierGeste();
   }, [rafraichir]);
 
-  useRealtimeGame(gameId, rafraichir, 3000);
+  // Le « 12 sur 20 ont répondu » arrive en direct dans le message Realtime :
+  // inutile de redemander tout l'état au serveur à chaque réponse. C'est
+  // aussi ce compteur qui déclenche la correction anticipée quand toute la
+  // classe a répondu — il est donc même plus réactif qu'avant.
+  const majCompteurs = useCallback((ligne: LignePartie) => {
+    setEtat((precedent) => {
+      if (precedent === null) return precedent;
+      const { answered_count, player_count } = precedent.partie;
+      if (answered_count === ligne.answered_count && player_count === ligne.player_count) {
+        return precedent;
+      }
+      return {
+        ...precedent,
+        partie: {
+          ...precedent.partie,
+          answered_count: ligne.answered_count,
+          player_count: ligne.player_count,
+        },
+      };
+    });
+  }, []);
+
+  useRealtimeGame(gameId, rafraichir, {
+    secoursMs: 3000,
+    surCompteurs: majCompteurs,
+  });
 
   // ------------------------------------------- « Marie a rejoint le quiz ! »
   useEffect(() => {
@@ -791,7 +816,11 @@ function EcranPartie({ gameId }: { gameId: string }) {
           <button
             type="button"
             className="bouton-secondaire"
-            style={{ borderColor: "var(--color-echec)", color: "#ffc9c0" }}
+            style={{
+              background: "#fff",
+              borderColor: "var(--color-echec)",
+              color: "var(--color-echec)",
+            }}
             onClick={() => void terminer()}
           >
             Terminer le quiz

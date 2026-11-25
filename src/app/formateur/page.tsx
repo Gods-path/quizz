@@ -49,7 +49,7 @@ function Bibliotheque() {
 
   const charger = useCallback(async () => {
     try {
-      const reponse = await fetch("/api/quiz");
+      const reponse = await fetch("/api/quiz", { cache: "no-store" });
       const donnees = await reponse.json();
       if (!reponse.ok) {
         setErreur(donnees.erreur ?? "Impossible de charger les quiz.");
@@ -159,7 +159,7 @@ function Bibliotheque() {
       setQuestions(null);
       return;
     }
-    const reponse = await fetch(`/api/quiz/${quiz.id}`);
+    const reponse = await fetch(`/api/quiz/${quiz.id}`, { cache: "no-store" });
     const donnees = await reponse.json();
     if (!reponse.ok) {
       setErreur(donnees.erreur ?? "Impossible de lire les questions.");
@@ -328,7 +328,11 @@ function Bibliotheque() {
                 <button
                   type="button"
                   className="bouton-secondaire"
-                  style={{ borderColor: "var(--color-echec)", color: "#ffc9c0" }}
+                  style={{
+                    background: "#fff",
+                    borderColor: "var(--color-echec)",
+                    color: "var(--color-echec)",
+                  }}
                   onClick={() => void supprimer(item)}
                 >
                   Supprimer

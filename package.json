@@ -10,7 +10,8 @@
     "test:watch": "node --test --watch \"src/tests/*.test.ts\"",
     "seed": "node scripts/seed-example-quiz.mjs",
     "simulate": "node scripts/simulate-game.mjs",
-    "verifier": "node scripts/verifier-securite-et-direct.mjs"
+    "verifier": "node scripts/verifier-securite-et-direct.mjs",
+    "simuler-classe": "node scripts/simuler-classe.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",

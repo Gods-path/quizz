@@ -410,7 +410,7 @@ function Importateur() {
                         style={{
                           background: "none",
                           border: "none",
-                          color: "var(--color-vert-clair)",
+                          color: "var(--color-vert)",
                           cursor: "pointer",
                           fontSize: "0.78rem",
                           marginTop: "0.3rem",

@@ -21,7 +21,7 @@ export function GardeFormateur({ children }: { children: React.ReactNode }) {
     let actif = true;
     (async () => {
       try {
-        const reponse = await fetch("/api/admin/session");
+        const reponse = await fetch("/api/admin/session", { cache: "no-store" });
         const donnees = await reponse.json();
         if (!actif) return;
         setEtat(donnees.connecte ? "ouvert" : "demande");

@@ -69,6 +69,21 @@ Pour vérifier : menu **Table Editor**, vous devez voir 6 tables —
 
 > Ce script peut être relancé sans danger : il ne supprime rien.
 
+### Si votre base existait déjà avant novembre 2025
+
+Un correctif est à passer **une seule fois**, de la même manière (SQL Editor →
+New query → coller → Run) :
+
+```
+supabase/correctif-01-charge-classe.sql
+```
+
+Sans lui, le quiz se figeait sur la question 1 dès qu'une classe entière se
+connectait. Le fichier explique pourquoi en détail. Il ne touche aucune
+donnée : vos quiz, vos parties et vos résultats restent en place. Si vous
+venez de créer la base avec `schema.sql`, le correctif est déjà inclus et
+vous n'avez rien à faire.
+
 ---
 
 ## 3. Remplir le fichier `.env.local`
@@ -339,7 +354,7 @@ seuil que vous avez choisi (72 % par défaut).
 ## 11. Vérifier que tout marche
 
 ```bash
-npm test        # 77 vérifications : lecture du CSV, calcul des durées, points
+npm test        # 89 vérifications : lecture du CSV, calcul des durées, points
 npm run build   # vérifie que le projet compile comme sur Vercel
 ```
 
@@ -355,6 +370,21 @@ La simulation joue les 30 questions, vérifie qu'aucune n'est sautée ni rejoué
 que les points et le bonus de série sont corrects, que le téléphone ne reçoit
 jamais la bonne réponse avant la correction, et que l'export CSV est complet.
 Comptez quelques minutes : elle fait environ 240 appels réseau.
+
+Puis l'épreuve de la **classe entière**, celle qui compte si vous évaluez
+trente personnes à la fois :
+
+```bash
+npm run simuler-classe        # 20 apprenants
+N=60 npm run simuler-classe   # 60 apprenants
+```
+
+Vingt apprenants rejoignent la partie, répondent **tous en même temps**, et le
+script mesure ce que chaque téléphone reçoit. C'est ce test qui a révélé que
+la correction d'une question produisait 41 messages par téléphone, soit plus
+de 800 appels pour la salle : à quarante apprenants, le quiz se figeait sur la
+question 1. Il vaut la peine de le relancer après toute modification de
+l'écran apprenant ou de l'écran formateur.
 
 Enfin, le contrôle de sécurité et du direct :
 
@@ -425,6 +455,21 @@ La musique est volontairement **trois fois moins forte** que les bruitages
 L'écran formateur a été fermé ou l'ordinateur s'est mis en veille. Rouvrez la
 page de la partie (menu **Historique** → **Ouvrir**) et cliquez sur
 **Question suivante**.
+
+**Le quiz se figeait sur la question 1 avec toute une classe**
+C'était un vrai défaut, corrigé. Chaque réponse enregistrée et chaque score
+mis à jour envoyaient un message à tous les téléphones, et chaque message
+déclenchait un appel au serveur : pour une classe de vingt, la correction
+d'une seule question produisait plus de 800 appels — et le coût augmentait
+comme le carré du nombre d'apprenants. Deux choses à vérifier si vous
+retrouvez ce comportement :
+
+1. le correctif `supabase/correctif-01-charge-classe.sql` a bien été passé
+   dans Supabase (voir la section 2) ;
+2. la version mise en ligne sur Vercel est à jour — un `git push` déclenche
+   un nouveau déploiement, attendez qu'il soit terminé.
+
+Pour le vérifier vous-même : `npm run simuler-classe`.
 
 **Une erreur en déployant sur Vercel**
 Dans 9 cas sur 10, une variable d'environnement manque. Onglet **Settings →

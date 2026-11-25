@@ -12,13 +12,30 @@ import { GameError } from "./game-server.ts";
 // importer depuis « @/lib/api ».
 export { asInt, asString, cleanPlayerName } from "./entrees.ts";
 
+/**
+ * Rien de ce que renvoient ces routes ne doit être gardé en mémoire, nulle
+ * part. L'état d'une partie change toutes les secondes : une réponse
+ * réchauffée afficherait la question précédente.
+ *
+ * Ce n'est pas une précaution théorique. Next.js ne met pas ces routes en
+ * cache, mais entre le téléphone et le serveur il y a le cache du
+ * navigateur et, sur les réseaux mobiles, les relais de l'opérateur. Deux
+ * mots d'en-tête suffisent à les écarter tous.
+ */
+const SANS_CACHE = {
+  "Cache-Control": "no-store, no-cache, must-revalidate",
+} as const;
+
 export function ok<T>(data: T, status = 200) {
-  return NextResponse.json(data as Record<string, unknown>, { status });
+  return NextResponse.json(data as Record<string, unknown>, {
+    status,
+    headers: SANS_CACHE,
+  });
 }
 
 /** Toutes les erreurs ont la même forme : { erreur: "..." }. */
 export function fail(message: string, status = 400) {
-  return NextResponse.json({ erreur: message }, { status });
+  return NextResponse.json({ erreur: message }, { status, headers: SANS_CACHE });
 }
 
 /** Lit le corps JSON d'une requête sans jamais planter. */

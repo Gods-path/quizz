@@ -10,9 +10,12 @@ import path from "node:path";
 
 export const BASE = process.env.QUIZ_URL ?? "http://localhost:3000";
 
-/** Lit ADMIN_PASSWORD dans .env.local sans l'afficher. */
-export function motDePasseFormateur() {
-  if (process.env.ADMIN_PASSWORD) return process.env.ADMIN_PASSWORD;
+/**
+ * Lit une variable dans .env.local sans jamais l'afficher.
+ * Une variable déjà présente dans l'environnement a la priorité.
+ */
+export function lireEnv(nom) {
+  if (process.env[nom]) return process.env[nom];
 
   const chemin = path.join(process.cwd(), ".env.local");
   if (!fs.existsSync(chemin)) {
@@ -26,11 +29,16 @@ export function motDePasseFormateur() {
     if (nettoyee.startsWith("#")) continue;
     const separateur = nettoyee.indexOf("=");
     if (separateur === -1) continue;
-    if (nettoyee.slice(0, separateur).trim() === "ADMIN_PASSWORD") {
+    if (nettoyee.slice(0, separateur).trim() === nom) {
       return nettoyee.slice(separateur + 1).trim();
     }
   }
-  throw new Error("ADMIN_PASSWORD absent de .env.local.");
+  throw new Error(`${nom} absent de .env.local.`);
+}
+
+/** Le mot de passe de l'espace formateur. */
+export function motDePasseFormateur() {
+  return lireEnv("ADMIN_PASSWORD");
 }
 
 /** Un petit client qui garde le cookie de session du formateur. */

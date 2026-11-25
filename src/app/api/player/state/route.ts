@@ -90,6 +90,17 @@ export async function POST(request: Request) {
           .eq("question_index", game.current_index)
           .maybeSingle(),
       ]);
+      // Si cette lecture échoue, on ne peut PAS continuer comme si
+      // l'apprenant n'avait rien répondu : à la correction, il se verrait
+      // reprocher un silence qu'il n'a pas eu, avec la réaction « Tu
+      // rêvais ? » et zéro point. Mieux vaut un message qui invite à
+      // patienter : l'écran se rafraîchit tout seul quelques secondes après.
+      if (answerResultat.error) {
+        return fail(
+          "La base de données n'a pas répondu. On réessaie dans un instant.",
+          503,
+        );
+      }
       const answer = answerResultat.data as AnswerRow | null;
 
       // --- Question en cours : AUCUNE bonne réponse n'est envoyée ---

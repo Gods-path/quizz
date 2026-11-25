@@ -151,10 +151,28 @@ begin
   return null;
 end $fn$;
 
+-- Deux declencheurs, et non un seul : c'est volontaire.
+--
+-- A la correction d'une question, le serveur reecrit la ligne de CHAQUE
+-- apprenant pour y poser son nouveau score. Avec un declencheur unique sur
+-- « update of removed », chacune de ces reecritures relancait un
+-- « update games », car la colonne removed figure dans la liste des
+-- colonnes ecrites meme quand sa valeur ne change pas.
+--
+-- Mesure sur une classe de 20 : 21 modifications de la ligne games pour
+-- UNE correction, donc 21 messages temps reel vers chacun des 20
+-- telephones. La clause « when » ci-dessous ramene cela a un seul.
 drop trigger if exists players_refresh_count on players;
 create trigger players_refresh_count
-  after insert or delete or update of removed on players
+  after insert or delete on players
   for each row execute function refresh_player_count();
+
+drop trigger if exists players_refresh_count_removed on players;
+create trigger players_refresh_count_removed
+  after update of removed on players
+  for each row
+  when (old.removed is distinct from new.removed)
+  execute function refresh_player_count();
 
 -- ----------------------------------------------------------------------------
 --  7. SECURITE (RLS)
